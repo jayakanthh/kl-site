@@ -1,0 +1,96 @@
+:root {
+  --primary-color: #A52A2A; /* Dark Red - KLH Theme */
+  --secondary-color: #2E3A59; /* Navy Blue */
+  --accent-color: #F4A261; /* Soft Orange */
+  --text-color: #333;
+  --light-bg: #F8F9FA;
+  --white: #FFFFFF;
+  --font-family: 'Poppins', sans-serif;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-family);
+  line-height: 1.6;
+  color: var(--text-color);
+  background-color: var(--white);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+  transition: color 0.3s;
+}
+
+ul {
+  list-style: none;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+.container {
+  width: 90%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 15px;
+}
+
+/* Utility Classes */
+.section {
+  padding: 4rem 0;
+}
+
+.bg-light {
+  background-color: var(--light-bg);
+}
+
+.text-center {
+  text-align: center;
+}
+
+.btn {
+  display: inline-block;
+  padding: 0.8rem 1.8rem;
+  border-radius: 50px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.3s;
+  cursor: pointer;
+  border: none;
+}
+
+.btn-primary {
+  background-color: var(--primary-color);
+  color: var(--white);
+  box-shadow: 0 4px 15px rgba(165, 42, 42, 0.4);
+}
+
+.btn-primary:hover {
+  background-color: #8a2323;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(165, 42, 42, 0.6);
+}
+
+.btn-secondary {
+  background-color: transparent;
+  border: 2px solid var(--white);
+  color: var(--white);
+  margin-left: 1rem;
+}
+
+.btn-secondary:hover {
+  background-color: var(--white);
+  color: var(--primary-color);
+}

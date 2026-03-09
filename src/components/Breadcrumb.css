@@ -1,0 +1,43 @@
+._bc {
+  display: flex;
+}
+
+.breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: saturate(180%) blur(14px);
+  -webkit-backdrop-filter: saturate(180%) blur(14px);
+  padding: 8px 12px;
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+  border: 1px solid rgba(0,0,0,0.06);
+  margin: 10px 0;
+}
+
+.crumb-home {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  color: var(--secondary-color);
+}
+
+.crumb {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-muted);
+}
+
+.crumb a {
+  color: var(--secondary-color);
+  font-weight: 600;
+}
+
+.crumb .current {
+  color: var(--primary-color);
+  font-weight: 700;
+}
