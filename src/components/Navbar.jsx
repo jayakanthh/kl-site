@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, ChevronRight, Menu, X } from 'lucide-react';
 import './Navbar.css';
+import logo from '../../KL_University_logo.svg';
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
@@ -63,7 +64,7 @@ const Navbar = () => {
       <div className="container">
         <div className="logo">
           <a href="/">
-             <img src="https://klh.edu.in/wp-content/uploads/2024/11/LOG9.png" alt="KLH Logo" />
+             <img src={logo} alt="KL University Logo" />
           </a>
         </div>
 
