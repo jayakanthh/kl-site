@@ -1,0 +1,64 @@
+.ece-lab-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.ece-lab-card {
+  background: rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 18px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+
+.ece-lab-card img {
+  width: 100%;
+  height: 190px;
+  object-fit: cover;
+  display: block;
+}
+
+.ece-lab-title {
+  padding: 12px 12px 14px;
+  font-weight: 900;
+  color: var(--secondary-color);
+}
+
+.ece-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.ece-stat {
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  background: rgba(255, 255, 255, 0.75);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.06);
+}
+
+.ece-stat-label {
+  font-size: 0.72rem;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-weight: 900;
+  margin-bottom: 8px;
+}
+
+.ece-stat-value {
+  font-weight: 950;
+  color: var(--secondary-color);
+  font-size: 1.35rem;
+}
+
+@media (max-width: 960px) {
+  .ece-lab-grid {
+    grid-template-columns: 1fr;
+  }
+  .ece-stat-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}

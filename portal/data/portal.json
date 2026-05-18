@@ -1,0 +1,22 @@
+{
+  "faculty": [
+    {
+      "id": "6457b4ff-008a-437e-92c6-58ae459296dc",
+      "email": "sample@klh.edu.in",
+      "name": "SAmple",
+      "department": "Hdas",
+      "designation": "HOD",
+      "photoUrl": "",
+      "bio": "",
+      "researchInterests": "",
+      "phone": "",
+      "office": "",
+      "linkedin": "",
+      "googleScholar": "",
+      "publications": [],
+      "passwordHash": "Lufz3NWZeDlaF112GClwlQ==:wvyX8uVjMcjAgVOzN1HOHZBaGv2h9If9NxHGvdHI78x7NUnR8+QaMQCAtKX/xvacP9m9saqybuoCp/2ork8yXA==",
+      "createdAt": "2026-03-24T15:56:02.597Z",
+      "lastUpdatedAt": "2026-03-24T15:56:02.597Z"
+    }
+  ]
+}
