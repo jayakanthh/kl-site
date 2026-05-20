@@ -3,8 +3,6 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import AdminNav from './_nav';
-
 const TITLE_OPTIONS = ['', 'Dr.', 'Prof.', 'Mr.', 'Ms.', 'Mrs.', 'Er.'];
 const DEPT_OPTIONS  = ['CSE', 'CS&IT', 'AI & Data Science', 'ECE', 'Freshman Engineering', 'MCA', 'BCA', 'MBA', 'BBA'];
 
@@ -224,8 +222,6 @@ export default function ManageFacultyPage() {
 
   return (
     <div className="container portal-wrap" style={{ maxWidth: 1100 }}>
-      <AdminNav />
-
       {/* Toast messages */}
       {error && <div className="portal-error portal-toast" style={{ marginBottom: '1rem' }}>{error}</div>}
       {ok    && <div className="portal-ok portal-toast"    style={{ marginBottom: '1rem' }}>{ok}</div>}

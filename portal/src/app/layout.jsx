@@ -1,4 +1,7 @@
+/* eslint-disable no-unused-vars */
 import './globals.css';
+import PortalHeader from './_header';
+import PageTransition from './_transition';
 
 export const metadata = {
   title: 'Faculty Portal | KLH Hyderabad',
@@ -9,15 +12,11 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body>
         <div className="portal-shell">
-          <div className="portal-shell-top">
-            <div className="container portal-shell-top-inner">
-              <a href="/" className="portal-brand">
-                <img src="/logo-final.png?v=20260324" alt="KL University Logo" />
-              </a>
-            </div>
-          </div>
+          <PortalHeader />
           <div className="portal-shell-body">
-            {children}
+            <PageTransition>
+              {children}
+            </PageTransition>
           </div>
         </div>
       </body>

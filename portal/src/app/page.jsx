@@ -9,10 +9,10 @@ function parseJsonLoose(text) {
 
 export default function Page() {
   const router = useRouter();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail]         = useState('');
+  const [password, setPassword]   = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError]         = useState('');
 
   const canSubmit = useMemo(() => email.trim() && password.trim() && !submitting, [email, password, submitting]);
 
@@ -23,8 +23,7 @@ export default function Page() {
     setError('');
     try {
       const res = await fetch('/api/admin/login', {
-        method: 'POST',
-        credentials: 'include',
+        method: 'POST', credentials: 'include',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
@@ -45,36 +44,60 @@ export default function Page() {
   };
 
   return (
-    <div className="container portal-wrap">
-      <div className="portal-card">
-        <div className="portal-card-kicker">Coordinator Login</div>
-        <p className="portal-muted" style={{ marginBottom: '1.25rem' }}>Sign in to manage faculty profiles for the KLH Hyderabad website.</p>
-        <form onSubmit={onSubmit} className="portal-form">
+    <div className="login-screen">
+      {/* Decorative blobs */}
+      <div className="login-blob login-blob-1" />
+      <div className="login-blob login-blob-2" />
+
+      <div className="login-card">
+        {/* Logo */}
+        <div className="login-logo-wrap">
+          <img src="/logo-final.png" alt="KLH University" className="login-logo" />
+        </div>
+
+        <div className="login-divider" />
+
+        {/* Heading */}
+        <div className="login-heading">
+          <h1>Faculty Portal</h1>
+          <p>KLH Hyderabad — Coordinator Access</p>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={onSubmit} className="login-form">
           <label className="portal-label">
             Email
             <input
-              className="portal-input"
+              className="portal-input login-input"
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={e => setEmail(e.target.value)}
               placeholder="coordinator@klh.edu.in"
               autoComplete="username"
             />
           </label>
+
           <label className="portal-label">
             Password
             <input
-              className="portal-input"
+              className="portal-input login-input"
               type="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={e => setPassword(e.target.value)}
               placeholder="••••••••"
               autoComplete="current-password"
             />
           </label>
-          {error ? <div className="portal-error">{error}</div> : null}
-          <button className="portal-btn" type="submit" disabled={!canSubmit}>
-            {submitting ? 'Signing in…' : 'Sign in'}
+
+          {error && (
+            <div className="portal-error portal-toast" style={{ fontSize: '0.88rem' }}>{error}</div>
+          )}
+
+          <button className="portal-btn login-btn" type="submit" disabled={!canSubmit}>
+            {submitting
+              ? <><span className="login-spinner" /> Signing in…</>
+              : 'Sign in'
+            }
           </button>
         </form>
       </div>

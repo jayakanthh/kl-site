@@ -3,8 +3,6 @@
 
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import AdminNav from '../_nav';
-
 const TITLE_OPTIONS = ['', 'Dr.', 'Prof.', 'Mr.', 'Ms.', 'Mrs.', 'Er.'];
 const DEPT_OPTIONS  = ['CSE', 'CS&IT', 'AI & Data Science', 'ECE', 'Freshman Engineering', 'MCA', 'BCA', 'MBA', 'BBA'];
 
@@ -84,8 +82,6 @@ export default function AddFacultyPage() {
 
   return (
     <div className="container portal-wrap" style={{ maxWidth: 780 }}>
-      <AdminNav />
-
       <div className="portal-card">
         <div style={{ marginBottom: '1.25rem' }}>
           <div className="portal-card-kicker">Add Faculty Profile</div>
