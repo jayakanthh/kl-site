@@ -30,12 +30,28 @@ export async function POST(req) {
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   try {
     const body = await req.json();
+
+    // Enforce single principal
+    if (body?.isPrincipal === true) {
+      const all = await getAdminFacultyList();
+      for (const f of all) {
+        if (f.isPrincipal) await updateFacultyById(f.id, { isPrincipal: false });
+      }
+    }
+
     const created = await createFaculty({
-      email: body?.email,
+      email: body?.email || null,
+      title: body?.title,
       name: body?.name,
       department: body?.department,
       designation: body?.designation,
-      password: body?.password,
+      linkedin: body?.linkedin,
+      xHandle: body?.xHandle,
+      googlePlus: body?.googlePlus,
+      subjects: body?.subjects,
+      photoUrl: body?.photoUrl,
+      isPrincipal: body?.isPrincipal === true,
+      isHOD: body?.isHOD === true,
     });
     return NextResponse.json({ faculty: created }, { status: 201 });
   } catch (e) {
@@ -50,7 +66,23 @@ export async function PUT(req) {
     const body = await req.json();
     const id = body?.id;
     if (!id) return NextResponse.json({ error: 'id is required' }, { status: 400 });
-    const updated = await updateFacultyById(id, { password: body?.password });
+
+    const patch = {};
+    const fields = ['email', 'title', 'name', 'department', 'designation', 'linkedin',
+                    'xHandle', 'googlePlus', 'subjects', 'photoUrl', 'isPrincipal', 'isHOD'];
+    for (const f of fields) {
+      if (body[f] != null) patch[f] = body[f];
+    }
+
+    // Enforce single principal
+    if (patch.isPrincipal === true) {
+      const all = await getAdminFacultyList();
+      for (const f of all) {
+        if (f.isPrincipal && f.id !== id) await updateFacultyById(f.id, { isPrincipal: false });
+      }
+    }
+
+    const updated = await updateFacultyById(id, patch);
     if (!updated) return NextResponse.json({ error: 'Not found' }, { status: 404 });
     return NextResponse.json({ ok: true });
   } catch {
@@ -63,10 +95,7 @@ export async function DELETE(req) {
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   try {
     const body = await req.json().catch(() => null);
-    if (body?.all) {
-      await clearFaculty();
-      return NextResponse.json({ ok: true });
-    }
+    if (body?.all) { await clearFaculty(); return NextResponse.json({ ok: true }); }
     const id = body?.id;
     if (!id) return NextResponse.json({ error: 'id is required' }, { status: 400 });
     const ok = await deleteFacultyById(id);

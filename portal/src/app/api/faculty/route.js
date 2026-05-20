@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getPublicFacultyList } from '../../../lib/portalStore';
+import { getPublicFacultyList, getDeptOrder } from '../../../lib/portalStore';
 
 export const runtime = 'nodejs';
 
@@ -23,10 +23,10 @@ export async function OPTIONS() {
 
 export async function GET(req) {
   const origin = req?.nextUrl?.origin || '';
-  const faculty = await getPublicFacultyList();
+  const [faculty, deptOrder] = await Promise.all([getPublicFacultyList(), getDeptOrder()]);
   const normalized = faculty.map((f) => ({
     ...f,
     photoUrl: toAbsoluteUrl(origin, f.photoUrl),
   }));
-  return NextResponse.json({ faculty: normalized }, { headers: CORS_HEADERS });
+  return NextResponse.json({ faculty: normalized, deptOrder }, { headers: CORS_HEADERS });
 }

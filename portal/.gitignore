@@ -6,3 +6,4 @@ out
 *.local
 data/uploads/
 
+.env*.local

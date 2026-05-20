@@ -22,7 +22,6 @@ function timingSafeEqualString(a, b) {
   return crypto.timingSafeEqual(bufA, bufB);
 }
 
-export const FACULTY_COOKIE = 'klh_faculty_session';
 export const ADMIN_COOKIE = 'klh_admin_session';
 
 export function requireAuthSecret() {

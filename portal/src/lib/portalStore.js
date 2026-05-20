@@ -1,230 +1,197 @@
-import { existsSync } from 'node:fs';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
-import path from 'node:path';
 import crypto from 'node:crypto';
+import { getDb, initDb } from './db.js';
 
-// On Vercel, process.cwd() is read-only. Use /tmp for writes.
-// Reads fall back to the bundled data/portal.json (committed to git as initial seed).
-const IS_VERCEL = !!process.env.VERCEL;
-const WRITE_FILE = IS_VERCEL ? '/tmp/portal.json' : path.join(process.cwd(), 'data', 'portal.json');
-const SEED_FILE = path.join(process.cwd(), 'data', 'portal.json');
-
-async function readJsonFile() {
-  // On Vercel: prefer /tmp (live writes), fall back to bundled seed
-  const candidates = IS_VERCEL ? [WRITE_FILE, SEED_FILE] : [WRITE_FILE];
-  for (const file of candidates) {
-    if (!existsSync(file)) continue;
-    try {
-      const raw = await readFile(file, 'utf8');
-      const parsed = JSON.parse(raw);
-      if (parsed && typeof parsed === 'object' && Array.isArray(parsed.faculty)) {
-        return parsed;
-      }
-    } catch {
-      // corrupt file, try next
-    }
-  }
-  return { faculty: [] };
-}
-
-async function writeJsonFile(data) {
-  const dir = path.dirname(WRITE_FILE);
-  await mkdir(dir, { recursive: true });
-  const json = JSON.stringify(data, null, 2);
-  await writeFile(WRITE_FILE, json, 'utf8');
+let dbReady = false;
+async function ensureDb() {
+  if (!dbReady) { await initDb(); dbReady = true; }
 }
 
 function normalizeEmail(email) {
   return String(email || '').trim().toLowerCase();
 }
 
-function safePublicFacultyRecord(f) {
-  const {
-    id,
-    email,
-    name,
-    department,
-    designation,
-    photoUrl,
-    bio,
-    researchInterests,
-    phone,
-    office,
-    linkedin,
-    googleScholar,
-    publications,
-    lastUpdatedAt,
-  } = f;
+function rowToRecord(row) {
   return {
-    id,
-    email,
-    name,
-    department,
-    designation,
-    photoUrl,
-    bio,
-    researchInterests,
-    phone,
-    office,
-    linkedin,
-    googleScholar,
-    publications,
-    lastUpdatedAt,
+    id: row.id,
+    email: row.email || '',
+    name: row.name || '',
+    department: row.department || '',
+    designation: row.designation || '',
+    isPrincipal: !!row.is_principal,
+    isHOD: !!row.is_hod,
+    photoUrl: row.photo_url || '',
+    title: row.title || '',
+    linkedin: row.linkedin || '',
+    xHandle: row.x_handle || '',
+    googlePlus: row.google_plus || '',
+    subjects: Array.isArray(row.subjects) ? row.subjects : [],
+    lastUpdatedAt: row.last_updated_at,
+    createdAt: row.created_at,
   };
 }
 
-function timingSafeEqual(a, b) {
-  const bufA = Buffer.from(String(a));
-  const bufB = Buffer.from(String(b));
-  if (bufA.length !== bufB.length) return false;
-  return crypto.timingSafeEqual(bufA, bufB);
+// ─── Dept Order ──────────────────────────────────────────────────────────────
+
+export async function getDeptOrder() {
+  await ensureDb();
+  const sql = getDb();
+  const rows = await sql`SELECT orders FROM dept_order WHERE id = 1`;
+  return rows[0]?.orders || [];
 }
 
-function hashPassword(password) {
-  const salt = crypto.randomBytes(16);
-  const hash = crypto.scryptSync(String(password), salt, 64);
-  return `${salt.toString('base64')}:${hash.toString('base64')}`;
+export async function setDeptOrder(order) {
+  await ensureDb();
+  const sql = getDb();
+  const arr = Array.isArray(order) ? order.map(String) : [];
+  await sql`UPDATE dept_order SET orders = ${arr} WHERE id = 1`;
+  return arr;
 }
 
-function verifyPassword(password, stored) {
-  if (!stored || typeof stored !== 'string') return false;
-  const [saltB64, hashB64] = stored.split(':');
-  if (!saltB64 || !hashB64) return false;
-  const salt = Buffer.from(saltB64, 'base64');
-  const expected = Buffer.from(hashB64, 'base64');
-  const actual = crypto.scryptSync(String(password), salt, expected.length);
-  return timingSafeEqual(actual, expected);
-}
+// ─── Public faculty list ─────────────────────────────────────────────────────
 
 export async function getPublicFacultyList() {
-  const data = await readJsonFile();
-  return data.faculty.map(safePublicFacultyRecord);
+  await ensureDb();
+  const sql = getDb();
+  const rows = await sql`SELECT * FROM faculty ORDER BY created_at DESC`;
+  const deptOrder = await getDeptOrder();
+  const faculty = rows.map(rowToRecord);
+
+  faculty.sort((a, b) => {
+    if (a.isPrincipal !== b.isPrincipal) return a.isPrincipal ? -1 : 1;
+    if (a.isPrincipal && b.isPrincipal) return 0;
+
+    const deptA = a.department.trim(), deptB = b.department.trim();
+    const idxA = deptOrder.indexOf(deptA), idxB = deptOrder.indexOf(deptB);
+
+    if (idxA !== -1 && idxB !== -1) { if (idxA !== idxB) return idxA - idxB; }
+    else if (idxA !== -1) return -1;
+    else if (idxB !== -1) return 1;
+    else { const cmp = deptA.localeCompare(deptB); if (cmp !== 0) return cmp; }
+
+    if (a.isHOD !== b.isHOD) return a.isHOD ? -1 : 1;
+    return 0;
+  });
+
+  return faculty;
 }
+
+// ─── Admin faculty list (all fields) ────────────────────────────────────────
 
 export async function getAdminFacultyList() {
-  const data = await readJsonFile();
-  return data.faculty.map((f) => ({
-    id: f.id,
-    email: f.email,
-    name: f.name,
-    department: f.department,
-    designation: f.designation,
-    lastUpdatedAt: f.lastUpdatedAt,
-    createdAt: f.createdAt,
-  }));
+  await ensureDb();
+  const sql = getDb();
+  const rows = await sql`SELECT * FROM faculty ORDER BY created_at DESC`;
+  return rows.map(rowToRecord);
 }
+
+// ─── Create ──────────────────────────────────────────────────────────────────
 
 export async function createFaculty(input) {
-  const data = await readJsonFile();
-  const email = normalizeEmail(input.email);
-  if (!email) {
-    throw new Error('Email is required');
-  }
-  const existing = data.faculty.find((f) => normalizeEmail(f.email) === email);
-  if (existing) {
-    throw new Error('Faculty already exists');
-  }
+  await ensureDb();
+  const sql = getDb();
 
   const id = crypto.randomUUID();
-  const now = new Date().toISOString();
-  const password = String(input.password || '').trim();
-  if (!password) {
-    throw new Error('Password is required');
+  // Email is optional — use a placeholder if not provided so the UNIQUE NOT NULL constraint is met
+  const email = input.email ? normalizeEmail(input.email) : `${id}@noemail.klh`;
+  const subjects = Array.isArray(input.subjects) ? input.subjects.map(String) : [];
+
+  try {
+    const rows = await sql`
+      INSERT INTO faculty (
+        id, email, name, department, designation,
+        is_principal, is_hod, photo_url,
+        title, linkedin, x_handle, google_plus, subjects,
+        password_hash
+      ) VALUES (
+        ${id}, ${email},
+        ${String(input.name || '').trim()},
+        ${String(input.department || '').trim()},
+        ${String(input.designation || '').trim()},
+        ${input.isPrincipal === true}, ${input.isHOD === true},
+        ${String(input.photoUrl || '').trim()},
+        ${String(input.title || '').trim()},
+        ${String(input.linkedin || '').trim()},
+        ${String(input.xHandle || '').trim()},
+        ${String(input.googlePlus || '').trim()},
+        ${JSON.stringify(subjects)},
+        ''
+      ) RETURNING *
+    `;
+    return rowToRecord(rows[0]);
+  } catch (e) {
+    if (e?.message?.includes('unique') || e?.code === '23505') {
+      throw new Error('A profile with this email already exists');
+    }
+    throw e;
   }
-
-  const record = {
-    id,
-    email,
-    name: String(input.name || '').trim(),
-    department: String(input.department || '').trim(),
-    designation: String(input.designation || '').trim(),
-    photoUrl: String(input.photoUrl || '').trim(),
-    bio: String(input.bio || '').trim(),
-    researchInterests: String(input.researchInterests || '').trim(),
-    phone: String(input.phone || '').trim(),
-    office: String(input.office || '').trim(),
-    linkedin: String(input.linkedin || '').trim(),
-    googleScholar: String(input.googleScholar || '').trim(),
-    publications: Array.isArray(input.publications) ? input.publications.map((p) => String(p)) : [],
-    passwordHash: hashPassword(password),
-    createdAt: now,
-    lastUpdatedAt: now,
-  };
-
-  data.faculty.unshift(record);
-  await writeJsonFile(data);
-
-  return safePublicFacultyRecord(record);
 }
 
-export async function validateFacultyCredentials(emailInput, passwordInput) {
-  const email = normalizeEmail(emailInput);
-  const password = String(passwordInput || '');
-  const data = await readJsonFile();
-  const faculty = data.faculty.find((f) => normalizeEmail(f.email) === email);
-  if (!faculty) return null;
-  if (!verifyPassword(password, faculty.passwordHash)) return null;
-  return safePublicFacultyRecord(faculty);
-}
+// ─── Read by ID ──────────────────────────────────────────────────────────────
 
 export async function getFacultyById(id) {
-  const data = await readJsonFile();
-  const faculty = data.faculty.find((f) => f.id === id);
-  if (!faculty) return null;
-  return safePublicFacultyRecord(faculty);
+  await ensureDb();
+  const sql = getDb();
+  const rows = await sql`SELECT * FROM faculty WHERE id = ${id}`;
+  if (!rows[0]) return null;
+  return rowToRecord(rows[0]);
 }
+
+// ─── Update ──────────────────────────────────────────────────────────────────
 
 export async function updateFacultyById(id, patch) {
-  const data = await readJsonFile();
-  const idx = data.faculty.findIndex((f) => f.id === id);
-  if (idx === -1) return null;
+  await ensureDb();
+  const sql = getDb();
+  const rows = await sql`SELECT * FROM faculty WHERE id = ${id}`;
+  if (!rows[0]) return null;
+  const cur = rows[0];
 
-  const now = new Date().toISOString();
-  const current = data.faculty[idx];
+  const name        = patch.name        != null ? String(patch.name).trim()        : cur.name;
+  const department  = patch.department  != null ? String(patch.department).trim()  : cur.department;
+  const designation = patch.designation != null ? String(patch.designation).trim() : cur.designation;
+  const isPrincipal = patch.isPrincipal != null ? !!patch.isPrincipal              : !!cur.is_principal;
+  const isHOD       = patch.isHOD       != null ? !!patch.isHOD                    : !!cur.is_hod;
+  const photoUrl    = patch.photoUrl    != null ? String(patch.photoUrl).trim()    : cur.photo_url;
+  const title       = patch.title       != null ? String(patch.title).trim()       : (cur.title || '');
+  const linkedin    = patch.linkedin    != null ? String(patch.linkedin).trim()    : (cur.linkedin || '');
+  const xHandle     = patch.xHandle     != null ? String(patch.xHandle).trim()     : (cur.x_handle || '');
+  const googlePlus  = patch.googlePlus  != null ? String(patch.googlePlus).trim()  : (cur.google_plus || '');
+  const subjects    = patch.subjects    != null
+    ? (Array.isArray(patch.subjects) ? patch.subjects.map(String) : [])
+    : (Array.isArray(cur.subjects) ? cur.subjects : []);
 
-  const next = {
-    ...current,
-    name: patch.name != null ? String(patch.name).trim() : current.name,
-    department: patch.department != null ? String(patch.department).trim() : current.department,
-    designation: patch.designation != null ? String(patch.designation).trim() : current.designation,
-    photoUrl: patch.photoUrl != null ? String(patch.photoUrl).trim() : current.photoUrl,
-    bio: patch.bio != null ? String(patch.bio).trim() : current.bio,
-    researchInterests: patch.researchInterests != null ? String(patch.researchInterests).trim() : current.researchInterests,
-    phone: patch.phone != null ? String(patch.phone).trim() : current.phone,
-    office: patch.office != null ? String(patch.office).trim() : current.office,
-    linkedin: patch.linkedin != null ? String(patch.linkedin).trim() : current.linkedin,
-    googleScholar: patch.googleScholar != null ? String(patch.googleScholar).trim() : current.googleScholar,
-    publications: patch.publications != null
-      ? (Array.isArray(patch.publications) ? patch.publications.map((p) => String(p)) : [])
-      : current.publications,
-    lastUpdatedAt: now,
-  };
-
-  if (patch.password != null) {
-    const newPassword = String(patch.password || '').trim();
-    if (newPassword) {
-      next.passwordHash = hashPassword(newPassword);
-    }
+  // Email: update only if explicitly provided
+  let email = cur.email;
+  if (patch.email != null) {
+    email = patch.email ? normalizeEmail(patch.email) : `${id}@noemail.klh`;
   }
 
-  data.faculty[idx] = next;
-  await writeJsonFile(data);
-  return safePublicFacultyRecord(next);
+  const updated = await sql`
+    UPDATE faculty SET
+      email = ${email},
+      name = ${name}, department = ${department}, designation = ${designation},
+      is_principal = ${isPrincipal}, is_hod = ${isHOD},
+      photo_url = ${photoUrl}, title = ${title},
+      linkedin = ${linkedin}, x_handle = ${xHandle},
+      google_plus = ${googlePlus},
+      subjects = ${JSON.stringify(subjects)},
+      last_updated_at = NOW()
+    WHERE id = ${id} RETURNING *
+  `;
+  return rowToRecord(updated[0]);
 }
 
+// ─── Delete ──────────────────────────────────────────────────────────────────
+
 export async function deleteFacultyById(id) {
-  const data = await readJsonFile();
-  const idx = data.faculty.findIndex((f) => f.id === id);
-  if (idx === -1) return false;
-  data.faculty.splice(idx, 1);
-  await writeJsonFile(data);
-  return true;
+  await ensureDb();
+  const sql = getDb();
+  const result = await sql`DELETE FROM faculty WHERE id = ${id} RETURNING id`;
+  return result.length > 0;
 }
 
 export async function clearFaculty() {
-  const data = await readJsonFile();
-  if (!data.faculty.length) return false;
-  data.faculty = [];
-  await writeJsonFile(data);
+  await ensureDb();
+  const sql = getDb();
+  await sql`TRUNCATE faculty`;
   return true;
 }

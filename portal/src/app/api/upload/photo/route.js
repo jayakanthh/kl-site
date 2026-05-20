@@ -1,9 +1,8 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import path from 'node:path';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { put } from '@vercel/blob';
 import crypto from 'node:crypto';
-import { FACULTY_COOKIE, verifySession } from '../../../../lib/portalAuth';
+import { ADMIN_COOKIE, verifySession } from '../../../../lib/portalAuth';
 
 export const runtime = 'nodejs';
 
@@ -13,10 +12,10 @@ function getBearerToken(req) {
   return '';
 }
 
-function getFacultySession(req) {
-  const token = cookies().get(FACULTY_COOKIE)?.value || getBearerToken(req);
+function getAdminSession(req) {
+  const token = cookies().get(ADMIN_COOKIE)?.value || getBearerToken(req);
   const payload = verifySession(token);
-  if (!payload || payload.role !== 'faculty' || !payload.facultyId) return null;
+  if (!payload || payload.role !== 'admin') return null;
   return payload;
 }
 
@@ -28,7 +27,7 @@ function extFromMime(mime) {
 }
 
 export async function POST(req) {
-  const session = getFacultySession(req);
+  const session = getAdminSession(req);
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   try {
@@ -47,20 +46,17 @@ export async function POST(req) {
 
     const arrayBuffer = await file.arrayBuffer();
     const buf = Buffer.from(arrayBuffer);
-    const maxBytes = 2 * 1024 * 1024;
-    if (buf.length > maxBytes) {
+    if (buf.length > 2 * 1024 * 1024) {
       return NextResponse.json({ error: 'Max file size is 2MB' }, { status: 400 });
     }
 
-    const uploadsDir = path.join(process.cwd(), 'data', 'uploads');
-    await mkdir(uploadsDir, { recursive: true });
+    const key = `faculty-photos/${crypto.randomUUID()}-${Date.now()}${ext}`;
+    const blob = await put(key, buf, { access: 'public', contentType: mime });
 
-    const key = `${session.facultyId}-${Date.now()}-${crypto.randomBytes(4).toString('hex')}${ext}`;
-    const filePath = path.join(uploadsDir, key);
-    await writeFile(filePath, buf);
-
-    return NextResponse.json({ photoUrl: `/api/uploads/${encodeURIComponent(key)}` });
-  } catch {
-    return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
+    return NextResponse.json({ url: blob.url });
+  } catch (e) {
+    const msg = e?.message || String(e) || 'Upload failed';
+    console.error('Upload error:', msg);
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
