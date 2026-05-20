@@ -720,6 +720,7 @@ a {
 /* ── Floating label fields ───────────────────────────── */
 .float-field {
   position: relative;
+  margin-top: 8px;
 }
 
 .float-input {
@@ -756,13 +757,16 @@ a {
   transform-origin: left center;
 }
 
-/* Float up when focused OR has value */
+/* Float up — sits ON the border line, outside the box */
 .float-input:focus + .float-label,
 .float-input:not(:placeholder-shown) + .float-label {
-  top: 11px;
-  transform: translateY(0) scale(0.78);
+  top: 0;
+  transform: translateY(-50%) scale(0.82);
   color: var(--primary-color);
   font-weight: 800;
+  background: #fff;
+  padding: 0 4px;
+  border-radius: 4px;
 }
 
 .login-input {
