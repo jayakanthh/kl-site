@@ -14,10 +14,6 @@ export default function RootLayout({ children }) {
               <a href="/" className="portal-brand">
                 <img src="/logo-final.png?v=20260324" alt="KL University Logo" />
               </a>
-              <div className="portal-shell-links">
-                <a href="/" className="portal-shell-link">Faculty</a>
-                <a href="/admin" className="portal-shell-link">Admin</a>
-              </div>
             </div>
           </div>
           <div className="portal-shell-body">
