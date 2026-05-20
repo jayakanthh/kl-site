@@ -60,34 +60,36 @@ export default function Page() {
         {/* Heading */}
         <div className="login-heading">
           <h1>Faculty Portal</h1>
-          <p>KLH Hyderabad — Coordinator Access</p>
+          <p>KLH Bachupally</p>
         </div>
 
         {/* Form */}
         <form onSubmit={onSubmit} className="login-form">
-          <label className="portal-label">
-            Email
+          <div className="float-field">
             <input
-              className="portal-input login-input"
+              id="login-email"
+              className="float-input"
               type="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
-              placeholder="coordinator@klh.edu.in"
+              placeholder=" "
               autoComplete="username"
             />
-          </label>
+            <label htmlFor="login-email" className="float-label">Email</label>
+          </div>
 
-          <label className="portal-label">
-            Password
+          <div className="float-field">
             <input
-              className="portal-input login-input"
+              id="login-password"
+              className="float-input"
               type="password"
               value={password}
               onChange={e => setPassword(e.target.value)}
-              placeholder="••••••••"
+              placeholder=" "
               autoComplete="current-password"
             />
-          </label>
+            <label htmlFor="login-password" className="float-label">Password</label>
+          </div>
 
           {error && (
             <div className="portal-error portal-toast" style={{ fontSize: '0.88rem' }}>{error}</div>

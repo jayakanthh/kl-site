@@ -85,9 +85,6 @@ export default function AddFacultyPage() {
       <div className="portal-card">
         <div style={{ marginBottom: '1.25rem' }}>
           <div className="portal-card-kicker">Add Faculty Profile</div>
-          <p className="portal-muted" style={{ fontSize: '0.9rem' }}>
-            Fill in the details below. Only <strong>Full Name</strong> is required — everything else is optional.
-          </p>
         </div>
 
         {error && <div className="portal-error" style={{ marginBottom: '1rem' }}>{error}</div>}
