@@ -35,7 +35,6 @@ a {
 .portal-shell {
   height: 100%;
   background: linear-gradient(180deg, rgba(46, 58, 89, 0.06), rgba(46, 58, 89, 0.02));
-  padding-top: 72px;
   overflow-y: auto;
 }
 

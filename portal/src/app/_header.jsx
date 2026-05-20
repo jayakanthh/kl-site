@@ -21,38 +21,40 @@ export default function PortalHeader() {
     router.refresh();
   };
 
+  if (!isAdmin) return null;
+
   return (
-    <div className="portal-shell-top">
-      <div className="container portal-shell-top-inner">
-        {/* Logo */}
-        <a href="/" className="portal-brand">
-          <img src="/logo-final.png?v=20260324" alt="KL University Logo" />
-        </a>
+    <>
+      {/* Fixed bar */}
+      <div className="portal-shell-top">
+        <div className="container portal-shell-top-inner">
+          <a href="/" className="portal-brand">
+            <img src="/logo-final.png?v=20260324" alt="KL University Logo" />
+          </a>
 
-        {/* Admin nav — only on /admin/* */}
-        {isAdmin && (
-          <>
-            <nav className="portal-header-nav">
-              <Link
-                href="/admin/faculty/add"
-                className={`portal-header-link${pathname === '/admin/faculty/add' ? ' active' : ''}`}
-              >
-                + Add Faculty
-              </Link>
-              <Link
-                href="/admin/faculty"
-                className={`portal-header-link${pathname === '/admin/faculty' ? ' active' : ''}`}
-              >
-                Manage Faculty
-              </Link>
-            </nav>
+          <nav className="portal-header-nav">
+            <Link
+              href="/admin/faculty/add"
+              className={`portal-header-link${pathname === '/admin/faculty/add' ? ' active' : ''}`}
+            >
+              + Add Faculty
+            </Link>
+            <Link
+              href="/admin/faculty"
+              className={`portal-header-link${pathname === '/admin/faculty' ? ' active' : ''}`}
+            >
+              Manage Faculty
+            </Link>
+          </nav>
 
-            <button className="portal-header-logout" type="button" onClick={logout}>
-              Logout
-            </button>
-          </>
-        )}
+          <button className="portal-header-logout" type="button" onClick={logout}>
+            Logout
+          </button>
+        </div>
       </div>
-    </div>
+
+      {/* In-flow spacer so content isn't hidden behind fixed bar */}
+      <div style={{ height: 72, flexShrink: 0 }} />
+    </>
   );
 }
