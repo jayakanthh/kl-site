@@ -31,6 +31,7 @@ export default function ManageFacultyPage() {
   const [uploading, setUploading]   = useState(false);
   const [error, setError]           = useState('');
   const [ok, setOk]                 = useState('');
+  const [warn, setWarn]             = useState('');
   const [faculty, setFaculty]       = useState([]);
   const [deptOrder, setDeptOrder]   = useState([]);
   const [editingId, setEditingId]   = useState(null);
@@ -38,7 +39,26 @@ export default function ManageFacultyPage() {
   const [editVisible, setEditVisible] = useState(false);
   const editRef = useRef(null);
 
+  // Auto-clear warn toast after 4 s
+  useEffect(() => {
+    if (!warn) return;
+    const t = setTimeout(() => setWarn(''), 4000);
+    return () => clearTimeout(t);
+  }, [warn]);
+
   const hasPrincipal = useMemo(() => faculty.some(f => f.isPrincipal), [faculty]);
+
+  // True when another person (not being edited) is already principal
+  const hasOtherPrincipal = useMemo(
+    () => faculty.some(f => f.isPrincipal && f.id !== editingId),
+    [faculty, editingId]
+  );
+
+  // True when another person in the same dept is already HOD
+  const hasHodInSameDept = useMemo(
+    () => faculty.some(f => f.isHOD && f.id !== editingId && f.department === editForm.department),
+    [faculty, editingId, editForm.department]
+  );
 
   const handleUnauth = useCallback(() => {
     window.localStorage.removeItem('klh_admin_token');
@@ -133,22 +153,6 @@ export default function ManageFacultyPage() {
     finally { setUploading(false); }
   };
 
-  const toggleFlag = async (id, flag, current) => {
-    setSubmitting(true); setError(''); setOk('');
-    try {
-      const res = await fetch('/api/admin/faculty', {
-        method: 'PUT', credentials: 'include',
-        headers: { 'content-type': 'application/json', ...getAuth() },
-        body: JSON.stringify({ id, [flag]: !current }),
-      });
-      if (res.status === 401) { handleUnauth(); return; }
-      if (!res.ok) throw new Error('Update failed');
-      setOk(`${flag === 'isPrincipal' ? 'Principal' : 'HOD'} updated ✓`);
-      await loadAll();
-    } catch (err) { setError(err?.message || 'Update failed'); }
-    finally { setSubmitting(false); }
-  };
-
   const deleteFaculty = async (id) => {
     if (!window.confirm('Delete this faculty profile?')) return;
     setSubmitting(true); setError(''); setOk('');
@@ -218,13 +222,29 @@ export default function ManageFacultyPage() {
 
   const ef = editForm;
   const setEf = (key) => (e) => setEditForm(f => ({ ...f, [key]: e.target.value }));
-  const setEfCheck = (key) => (e) => setEditForm(f => ({ ...f, [key]: e.target.checked }));
+
+  const onPrincipalChange = (e) => {
+    if (e.target.checked && hasOtherPrincipal) {
+      setWarn('There is already a Principal assigned. Please delete that profile if you wish to change.');
+      return;
+    }
+    setEditForm(f => ({ ...f, isPrincipal: e.target.checked }));
+  };
+
+  const onHodChange = (e) => {
+    if (e.target.checked && hasHodInSameDept) {
+      setWarn('There is already a HOD assigned for this department. Please remove that role if you wish to change.');
+      return;
+    }
+    setEditForm(f => ({ ...f, isHOD: e.target.checked }));
+  };
 
   return (
     <div className="container portal-wrap" style={{ maxWidth: 1100 }}>
       {/* Toast messages */}
       {error && <div className="portal-error portal-toast" style={{ marginBottom: '1rem' }}>{error}</div>}
       {ok    && <div className="portal-ok portal-toast"    style={{ marginBottom: '1rem' }}>{ok}</div>}
+      {warn  && <div className="portal-warn portal-toast"  style={{ marginBottom: '1rem' }}>⚠ {warn}</div>}
 
       {/* ── Edit panel ──────────────────────────────────────── */}
       {editingId && (
@@ -313,14 +333,42 @@ export default function ManageFacultyPage() {
               <textarea className="portal-input" rows={3} value={ef.subjectsText} onChange={setEf('subjectsText')} style={{ resize: 'vertical' }} />
             </label>
           </div>
+
+          {/* Role checkboxes — greyed out when role already taken by someone else */}
           <div style={{ display: 'flex', gap: '2rem', marginBottom: '16px' }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontWeight: 700 }}>
-              <input type="checkbox" checked={ef.isPrincipal} onChange={setEfCheck('isPrincipal')} /> Principal
+            <label style={{
+              display: 'flex', alignItems: 'center', gap: '0.5rem',
+              fontWeight: 700, color: 'var(--secondary-color)',
+              opacity: (hasOtherPrincipal && !ef.isPrincipal) ? 0.4 : 1,
+              cursor: (hasOtherPrincipal && !ef.isPrincipal) ? 'not-allowed' : 'pointer',
+              userSelect: 'none',
+            }}>
+              <input type="checkbox" checked={ef.isPrincipal} onChange={onPrincipalChange} />
+              Principal
+              {hasOtherPrincipal && !ef.isPrincipal && (
+                <span style={{ fontSize: '0.74rem', fontWeight: 600, color: '#92400e', background: 'rgba(251,191,36,0.15)', padding: '1px 7px', borderRadius: 99 }}>
+                  taken
+                </span>
+              )}
             </label>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontWeight: 700 }}>
-              <input type="checkbox" checked={ef.isHOD} onChange={setEfCheck('isHOD')} /> HOD
+
+            <label style={{
+              display: 'flex', alignItems: 'center', gap: '0.5rem',
+              fontWeight: 700, color: 'var(--secondary-color)',
+              opacity: (hasHodInSameDept && !ef.isHOD) ? 0.4 : 1,
+              cursor: (hasHodInSameDept && !ef.isHOD) ? 'not-allowed' : 'pointer',
+              userSelect: 'none',
+            }}>
+              <input type="checkbox" checked={ef.isHOD} onChange={onHodChange} />
+              HOD
+              {hasHodInSameDept && !ef.isHOD && (
+                <span style={{ fontSize: '0.74rem', fontWeight: 600, color: '#92400e', background: 'rgba(251,191,36,0.15)', padding: '1px 7px', borderRadius: 99 }}>
+                  taken
+                </span>
+              )}
             </label>
           </div>
+
           <div style={{ display: 'flex', gap: '10px' }}>
             <button className="portal-btn" type="button" onClick={saveEdit} disabled={submitting} style={{ minWidth: 130 }}>
               {submitting ? 'Saving…' : 'Save Changes'}
@@ -360,13 +408,13 @@ export default function ManageFacultyPage() {
             <>
               {grouped.principal.length > 0 && (
                 <FacultyGroup label="Principal" rows={grouped.principal}
-                  submitting={submitting} hasPrincipal={hasPrincipal}
-                  editingId={editingId} onEdit={startEdit} onToggle={toggleFlag} onDelete={deleteFaculty} />
+                  submitting={submitting} editingId={editingId}
+                  onEdit={startEdit} onDelete={deleteFaculty} />
               )}
               {grouped.depts.map(([dept, rows]) => (
                 <FacultyGroup key={dept} label={dept} rows={rows}
-                  submitting={submitting} hasPrincipal={hasPrincipal}
-                  editingId={editingId} onEdit={startEdit} onToggle={toggleFlag} onDelete={deleteFaculty} />
+                  submitting={submitting} editingId={editingId}
+                  onEdit={startEdit} onDelete={deleteFaculty} />
               ))}
             </>
           )}
@@ -398,23 +446,23 @@ export default function ManageFacultyPage() {
   );
 }
 
-function FacultyGroup({ label, rows, submitting, hasPrincipal, editingId, onEdit, onToggle, onDelete }) {
+function FacultyGroup({ label, rows, submitting, editingId, onEdit, onDelete }) {
   return (
     <div style={{ marginBottom: '1.5rem' }}>
       <div className="faculty-group-label">{label}</div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
         {rows.map((f, idx) => (
           <FacultyRow key={f.id} f={f} idx={idx}
-            submitting={submitting} hasPrincipal={hasPrincipal}
+            submitting={submitting}
             isEditing={editingId === f.id}
-            onEdit={onEdit} onToggle={onToggle} onDelete={onDelete} />
+            onEdit={onEdit} onDelete={onDelete} />
         ))}
       </div>
     </div>
   );
 }
 
-function FacultyRow({ f, idx, submitting, hasPrincipal, isEditing, onEdit, onToggle, onDelete }) {
+function FacultyRow({ f, idx, submitting, isEditing, onEdit, onDelete }) {
   const displayName = [f.title, f.name].filter(Boolean).join(' ') || '—';
   const ini = initials(f.name);
 
@@ -439,20 +487,10 @@ function FacultyRow({ f, idx, submitting, hasPrincipal, isEditing, onEdit, onTog
         </div>
       </div>
 
-      {/* Badges + role toggles */}
+      {/* Role badges only — no toggle buttons */}
       <div className="faculty-row-roles">
         {f.isPrincipal && <span className="role-badge">★ Principal</span>}
         {f.isHOD       && <span className="role-badge">★ HOD</span>}
-        {(f.isPrincipal || !hasPrincipal) && (
-          <button className="role-toggle-btn" type="button"
-            onClick={() => onToggle(f.id, 'isPrincipal', f.isPrincipal)} disabled={submitting}>
-            {f.isPrincipal ? '− Principal' : '+ Principal'}
-          </button>
-        )}
-        <button className="role-toggle-btn" type="button"
-          onClick={() => onToggle(f.id, 'isHOD', f.isHOD)} disabled={submitting}>
-          {f.isHOD ? '− HOD' : '+ HOD'}
-        </button>
       </div>
 
       {/* Actions */}

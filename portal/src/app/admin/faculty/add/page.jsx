@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 const TITLE_OPTIONS = ['', 'Dr.', 'Prof.', 'Mr.', 'Ms.', 'Mrs.', 'Er.'];
 const DEPT_OPTIONS  = ['CSE', 'CS&IT', 'AI & Data Science', 'ECE', 'Freshman Engineering', 'MCA', 'BCA', 'MBA', 'BBA'];
@@ -29,11 +29,53 @@ export default function AddFacultyPage() {
   const [uploading, setUploading]   = useState(false);
   const [error, setError]       = useState('');
   const [ok, setOk]             = useState('');
+  const [warn, setWarn]         = useState('');
+
+  // Existing role state fetched on mount
+  const [existingPrincipal, setExistingPrincipal] = useState(false);
+  const [hodDepts, setHodDepts] = useState(new Set());
+
+  // Auto-clear warn toast
+  useEffect(() => {
+    if (!warn) return;
+    const t = setTimeout(() => setWarn(''), 4000);
+    return () => clearTimeout(t);
+  }, [warn]);
+
+  // Fetch existing faculty to know which roles are taken
+  useEffect(() => {
+    fetch('/api/admin/faculty', { credentials: 'include', headers: getAuth() })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => {
+        if (!d?.faculty) return;
+        setExistingPrincipal(d.faculty.some(f => f.isPrincipal));
+        setHodDepts(new Set(d.faculty.filter(f => f.isHOD).map(f => f.department).filter(Boolean)));
+      })
+      .catch(() => null);
+  }, []);
+
+  const principalBlocked = existingPrincipal && !form.isPrincipal;
+  const hodBlocked = !!(form.department && hodDepts.has(form.department) && !form.isHOD);
 
   const canSave = useMemo(() => !submitting && form.name.trim(), [submitting, form.name]);
 
   const set = (key) => (e) => setForm(f => ({ ...f, [key]: e.target.value }));
-  const setCheck = (key) => (e) => setForm(f => ({ ...f, [key]: e.target.checked }));
+
+  const onPrincipalChange = (e) => {
+    if (e.target.checked && principalBlocked) {
+      setWarn('There is already a Principal assigned. Please delete that profile if you wish to change.');
+      return;
+    }
+    setForm(f => ({ ...f, isPrincipal: e.target.checked }));
+  };
+
+  const onHodChange = (e) => {
+    if (e.target.checked && hodBlocked) {
+      setWarn('There is already a HOD assigned for this department. Please remove that role if you wish to change.');
+      return;
+    }
+    setForm(f => ({ ...f, isHOD: e.target.checked }));
+  };
 
   const uploadPhoto = async (file) => {
     setUploading(true);
@@ -89,6 +131,7 @@ export default function AddFacultyPage() {
 
         {error && <div className="portal-error" style={{ marginBottom: '1rem' }}>{error}</div>}
         {ok    && <div className="portal-ok"    style={{ marginBottom: '1rem' }}>{ok}</div>}
+        {warn  && <div className="portal-warn portal-toast" style={{ marginBottom: '1rem' }}>⚠ {warn}</div>}
 
         <form onSubmit={onSubmit}>
           {/* Row 1: Title + Name */}
@@ -164,15 +207,38 @@ export default function AddFacultyPage() {
             </label>
           </div>
 
-          {/* Roles */}
+          {/* Roles — greyed out when already taken */}
           <div style={{ display: 'flex', gap: '2rem', marginBottom: '20px' }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontWeight: 700, color: 'var(--secondary-color)' }}>
-              <input type="checkbox" checked={form.isPrincipal} onChange={setCheck('isPrincipal')} />
+            <label style={{
+              display: 'flex', alignItems: 'center', gap: '0.5rem',
+              cursor: principalBlocked ? 'not-allowed' : 'pointer',
+              fontWeight: 700, color: 'var(--secondary-color)',
+              opacity: principalBlocked ? 0.4 : 1,
+              userSelect: 'none',
+            }}>
+              <input type="checkbox" checked={form.isPrincipal} onChange={onPrincipalChange} />
               Principal
+              {principalBlocked && (
+                <span style={{ fontSize: '0.74rem', fontWeight: 600, color: '#92400e', background: 'rgba(251,191,36,0.15)', padding: '1px 7px', borderRadius: 99 }}>
+                  taken
+                </span>
+              )}
             </label>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontWeight: 700, color: 'var(--secondary-color)' }}>
-              <input type="checkbox" checked={form.isHOD} onChange={setCheck('isHOD')} />
+
+            <label style={{
+              display: 'flex', alignItems: 'center', gap: '0.5rem',
+              cursor: hodBlocked ? 'not-allowed' : 'pointer',
+              fontWeight: 700, color: 'var(--secondary-color)',
+              opacity: hodBlocked ? 0.4 : 1,
+              userSelect: 'none',
+            }}>
+              <input type="checkbox" checked={form.isHOD} onChange={onHodChange} />
               HOD
+              {hodBlocked && (
+                <span style={{ fontSize: '0.74rem', fontWeight: 600, color: '#92400e', background: 'rgba(251,191,36,0.15)', padding: '1px 7px', borderRadius: 99 }}>
+                  taken
+                </span>
+              )}
             </label>
           </div>
 
