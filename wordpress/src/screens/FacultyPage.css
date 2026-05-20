@@ -196,7 +196,7 @@
 /* ── Card wrapper ───────────────────────────────────────── */
 .faculty-card-wrap {
   position: relative;
-  flex: 0 0 200px;
+  flex: 0 0 250px;
   z-index: 1;
   background: #fff;
   border-radius: 16px;
@@ -387,7 +387,7 @@
 
 /* ── Responsive ─────────────────────────────────────────── */
 @media (max-width: 900px) {
-  .faculty-card-wrap { flex: 0 0 160px; }
+  .faculty-card-wrap { flex: 0 0 200px; }
 }
 
 @media (max-width: 600px) {
