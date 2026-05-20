@@ -37,13 +37,13 @@ export default function PortalHeader() {
               href="/admin/faculty/add"
               className={`portal-header-link${pathname === '/admin/faculty/add' ? ' active' : ''}`}
             >
-              + Add Faculty
+              + Add Profile
             </Link>
             <Link
               href="/admin/faculty"
               className={`portal-header-link${pathname === '/admin/faculty' ? ' active' : ''}`}
             >
-              Manage Faculty
+              Manage Profiles
             </Link>
           </nav>
 
