@@ -16,6 +16,10 @@ function getAuth() {
   return t ? { authorization: `Bearer ${t}` } : {};
 }
 
+function initials(name) {
+  return String(name || '?').split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase();
+}
+
 const EMPTY_EDIT = {
   title: '', name: '', department: '', designation: '', email: '',
   linkedin: '', xHandle: '', googlePlus: '', subjectsText: '', photoUrl: '',
@@ -24,15 +28,16 @@ const EMPTY_EDIT = {
 
 export default function ManageFacultyPage() {
   const router = useRouter();
-  const [loading, setLoading]     = useState(true);
+  const [loading, setLoading]       = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [uploading, setUploading]   = useState(false);
-  const [error, setError]         = useState('');
-  const [ok, setOk]               = useState('');
-  const [faculty, setFaculty]     = useState([]);
-  const [deptOrder, setDeptOrder] = useState([]);
-  const [editingId, setEditingId] = useState(null);
-  const [editForm, setEditForm]   = useState(EMPTY_EDIT);
+  const [error, setError]           = useState('');
+  const [ok, setOk]                 = useState('');
+  const [faculty, setFaculty]       = useState([]);
+  const [deptOrder, setDeptOrder]   = useState([]);
+  const [editingId, setEditingId]   = useState(null);
+  const [editForm, setEditForm]     = useState(EMPTY_EDIT);
+  const [editVisible, setEditVisible] = useState(false);
   const editRef = useRef(null);
 
   const hasPrincipal = useMemo(() => faculty.some(f => f.isPrincipal), [faculty]);
@@ -44,7 +49,6 @@ export default function ManageFacultyPage() {
     router.refresh();
   }, [router]);
 
-  // ── Load ────────────────────────────────────────────────────
   const loadAll = useCallback(async () => {
     setLoading(true); setError('');
     try {
@@ -70,22 +74,25 @@ export default function ManageFacultyPage() {
 
   // ── Edit ────────────────────────────────────────────────────
   const startEdit = (f) => {
+    setEditVisible(false);
     setEditingId(f.id);
     setEditForm({
-      title: f.title || '',
-      name: f.name || '',
-      department: f.department || '',
-      designation: f.designation || '',
+      title: f.title || '', name: f.name || '',
+      department: f.department || '', designation: f.designation || '',
       email: f.email?.endsWith('@noemail.klh') ? '' : (f.email || ''),
-      linkedin: f.linkedin || '',
-      xHandle: f.xHandle || '',
-      googlePlus: f.googlePlus || '',
-      subjectsText: toLines(f.subjects),
-      photoUrl: f.photoUrl || '',
-      isPrincipal: f.isPrincipal,
-      isHOD: f.isHOD,
+      linkedin: f.linkedin || '', xHandle: f.xHandle || '', googlePlus: f.googlePlus || '',
+      subjectsText: toLines(f.subjects), photoUrl: f.photoUrl || '',
+      isPrincipal: f.isPrincipal, isHOD: f.isHOD,
     });
-    setTimeout(() => editRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
+    setTimeout(() => {
+      editRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setTimeout(() => setEditVisible(true), 80);
+    }, 30);
+  };
+
+  const cancelEdit = () => {
+    setEditVisible(false);
+    setTimeout(() => setEditingId(null), 280);
   };
 
   const saveEdit = async () => {
@@ -109,8 +116,8 @@ export default function ManageFacultyPage() {
       });
       if (res.status === 401) { handleUnauth(); return; }
       if (!res.ok) throw new Error('Update failed');
-      setOk('Profile updated');
-      setEditingId(null);
+      setOk('Profile updated ✓');
+      cancelEdit();
       await loadAll();
     } catch (err) { setError(err?.message || 'Update failed'); }
     finally { setSubmitting(false); }
@@ -119,8 +126,7 @@ export default function ManageFacultyPage() {
   const uploadPhoto = async (file) => {
     setUploading(true);
     try {
-      const fd = new FormData();
-      fd.append('file', file);
+      const fd = new FormData(); fd.append('file', file);
       const res = await fetch('/api/upload/photo', { method: 'POST', credentials: 'include', headers: getAuth(), body: fd });
       if (!res.ok) throw new Error('Upload failed');
       const data = await res.json();
@@ -129,7 +135,6 @@ export default function ManageFacultyPage() {
     finally { setUploading(false); }
   };
 
-  // ── Toggle flag ─────────────────────────────────────────────
   const toggleFlag = async (id, flag, current) => {
     setSubmitting(true); setError(''); setOk('');
     try {
@@ -140,13 +145,12 @@ export default function ManageFacultyPage() {
       });
       if (res.status === 401) { handleUnauth(); return; }
       if (!res.ok) throw new Error('Update failed');
-      setOk(`${flag === 'isPrincipal' ? 'Principal' : 'HOD'} updated`);
+      setOk(`${flag === 'isPrincipal' ? 'Principal' : 'HOD'} updated ✓`);
       await loadAll();
     } catch (err) { setError(err?.message || 'Update failed'); }
     finally { setSubmitting(false); }
   };
 
-  // ── Delete ──────────────────────────────────────────────────
   const deleteFaculty = async (id) => {
     if (!window.confirm('Delete this faculty profile?')) return;
     setSubmitting(true); setError(''); setOk('');
@@ -159,7 +163,7 @@ export default function ManageFacultyPage() {
       if (res.status === 401) { handleUnauth(); return; }
       if (!res.ok) throw new Error('Delete failed');
       setOk('Profile deleted');
-      if (editingId === id) setEditingId(null);
+      if (editingId === id) cancelEdit();
       await loadAll();
     } catch (err) { setError(err?.message || 'Delete failed'); }
     finally { setSubmitting(false); }
@@ -176,13 +180,12 @@ export default function ManageFacultyPage() {
       });
       if (!res.ok) throw new Error('Clear failed');
       setOk('All profiles cleared');
-      setEditingId(null);
+      cancelEdit();
       await loadAll();
     } catch (err) { setError(err?.message || 'Clear failed'); }
     finally { setSubmitting(false); }
   };
 
-  // ── Dept order ──────────────────────────────────────────────
   const moveDept = async (i, dir) => {
     const newOrder = [...knownDepts];
     const j = i + dir;
@@ -195,11 +198,9 @@ export default function ManageFacultyPage() {
         headers: { 'content-type': 'application/json', ...getAuth() },
         body: JSON.stringify({ deptOrder: newOrder }),
       });
-      setOk('Order saved');
     } catch { setError('Failed to save order'); }
   };
 
-  // ── Grouped ─────────────────────────────────────────────────
   const grouped = useMemo(() => {
     const principal = faculty.filter(f => f.isPrincipal);
     const map = new Map();
@@ -225,21 +226,40 @@ export default function ManageFacultyPage() {
     <div className="container portal-wrap" style={{ maxWidth: 1100 }}>
       <AdminNav />
 
-      {error && <div className="portal-error" style={{ marginBottom: '1rem' }}>{error}</div>}
-      {ok    && <div className="portal-ok"    style={{ marginBottom: '1rem' }}>{ok}</div>}
+      {/* Toast messages */}
+      {error && <div className="portal-error portal-toast" style={{ marginBottom: '1rem' }}>{error}</div>}
+      {ok    && <div className="portal-ok portal-toast"    style={{ marginBottom: '1rem' }}>{ok}</div>}
 
-      {/* ── Inline edit panel ─────────────────────────────── */}
+      {/* ── Edit panel ──────────────────────────────────────── */}
       {editingId && (
-        <div ref={editRef} className="portal-card" style={{ marginBottom: '20px', borderLeft: '4px solid var(--primary-color)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <div>
-              <div className="portal-card-kicker" style={{ margin: 0 }}>Editing Profile</div>
-              <div style={{ fontWeight: 800, color: 'var(--secondary-color)', fontSize: '1rem', marginTop: 2 }}>
-                {[ef.title, ef.name].filter(Boolean).join(' ') || '(unnamed)'}
+        <div
+          ref={editRef}
+          className="portal-card portal-edit-panel"
+          style={{
+            marginBottom: '20px',
+            borderLeft: '4px solid var(--primary-color)',
+            opacity: editVisible ? 1 : 0,
+            transform: editVisible ? 'translateY(0)' : 'translateY(-12px)',
+            transition: 'opacity 0.28s ease, transform 0.28s ease',
+          }}
+        >
+          {/* Edit header with photo preview */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+              <div className="faculty-avatar-lg">
+                {ef.photoUrl
+                  ? <img src={ef.photoUrl} alt={ef.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+                  : <span>{initials(ef.name)}</span>
+                }
+              </div>
+              <div>
+                <div className="portal-card-kicker" style={{ margin: 0 }}>Editing Profile</div>
+                <div style={{ fontWeight: 800, color: 'var(--secondary-color)', fontSize: '1rem', marginTop: 2 }}>
+                  {[ef.title, ef.name].filter(Boolean).join(' ') || '(unnamed)'}
+                </div>
               </div>
             </div>
-            <button className="portal-btn portal-btn-secondary portal-btn-small" type="button"
-              onClick={() => setEditingId(null)}>✕ Cancel</button>
+            <button className="portal-btn portal-btn-secondary portal-btn-small" type="button" onClick={cancelEdit}>✕ Cancel</button>
           </div>
 
           <div className="portal-grid" style={{ marginBottom: '12px' }}>
@@ -284,9 +304,9 @@ export default function ManageFacultyPage() {
               {uploading && <span className="portal-muted" style={{ fontSize: '0.8rem' }}>Uploading…</span>}
               {ef.photoUrl && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '0.4rem' }}>
-                  <img src={ef.photoUrl} alt="preview" style={{ width: 56, height: 56, borderRadius: 8, objectFit: 'cover', border: '1px solid #ddd' }} />
+                  <img src={ef.photoUrl} alt="preview" style={{ width: 64, height: 64, borderRadius: 10, objectFit: 'cover', border: '1px solid #eee' }} />
                   <button type="button" className="portal-btn portal-btn-secondary portal-btn-small"
-                    onClick={() => setEditForm(f => ({ ...f, photoUrl: '' }))}>Remove</button>
+                    onClick={() => setEditForm(f => ({ ...f, photoUrl: '' }))}>Remove photo</button>
                 </div>
               )}
             </label>
@@ -309,68 +329,69 @@ export default function ManageFacultyPage() {
             <button className="portal-btn" type="button" onClick={saveEdit} disabled={submitting} style={{ minWidth: 130 }}>
               {submitting ? 'Saving…' : 'Save Changes'}
             </button>
-            <button className="portal-btn portal-btn-secondary" type="button" onClick={() => setEditingId(null)}>Cancel</button>
+            <button className="portal-btn portal-btn-secondary" type="button" onClick={cancelEdit}>Cancel</button>
           </div>
         </div>
       )}
 
-      {/* ── Two-column: faculty list + dept order ─────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '16px', alignItems: 'start' }}>
+      {/* ── Main two-column layout ──────────────────────────── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '16px', alignItems: 'start' }}>
 
         {/* Faculty list */}
         <div className="portal-card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <div>
               <div className="portal-card-kicker" style={{ margin: 0 }}>Faculty Profiles</div>
               <div className="portal-muted" style={{ fontSize: '0.82rem', marginTop: 2 }}>
-                {faculty.length} profile{faculty.length !== 1 ? 's' : ''}
+                {loading ? 'Loading…' : `${faculty.length} profile${faculty.length !== 1 ? 's' : ''}`}
               </div>
             </div>
             <button className="portal-btn portal-btn-secondary portal-btn-small" type="button"
-              onClick={clearAll} disabled={submitting || loading || !faculty.length}>
-              Clear All
-            </button>
+              onClick={clearAll} disabled={submitting || loading || !faculty.length}>Clear All</button>
           </div>
 
-          {loading
-            ? <div className="portal-muted">Loading…</div>
-            : faculty.length === 0
-              ? <div className="portal-muted" style={{ padding: '1.5rem 0', textAlign: 'center' }}>
-                  No profiles yet. <a href="/admin/faculty/add" style={{ color: 'var(--primary-color)', fontWeight: 700 }}>Add one →</a>
-                </div>
-              : (
-                <>
-                  {grouped.principal.length > 0 && (
-                    <FacultyGroup label="Principal" rows={grouped.principal}
-                      submitting={submitting} hasPrincipal={hasPrincipal}
-                      editingId={editingId} onEdit={startEdit} onToggle={toggleFlag} onDelete={deleteFaculty} />
-                  )}
-                  {grouped.depts.map(([dept, rows]) => (
-                    <FacultyGroup key={dept} label={dept} rows={rows}
-                      submitting={submitting} hasPrincipal={hasPrincipal}
-                      editingId={editingId} onEdit={startEdit} onToggle={toggleFlag} onDelete={deleteFaculty} />
-                  ))}
-                </>
-              )
-          }
+          {loading ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {[1,2,3].map(i => <div key={i} className="faculty-row-skeleton" />)}
+            </div>
+          ) : faculty.length === 0 ? (
+            <div style={{ padding: '2rem 0', textAlign: 'center' }}>
+              <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>🎓</div>
+              <div className="portal-muted" style={{ marginBottom: '0.75rem' }}>No faculty profiles yet.</div>
+              <a href="/admin/faculty/add" className="portal-btn" style={{ display: 'inline-flex', textDecoration: 'none', fontSize: '0.88rem' }}>+ Add First Profile</a>
+            </div>
+          ) : (
+            <>
+              {grouped.principal.length > 0 && (
+                <FacultyGroup label="Principal" rows={grouped.principal}
+                  submitting={submitting} hasPrincipal={hasPrincipal}
+                  editingId={editingId} onEdit={startEdit} onToggle={toggleFlag} onDelete={deleteFaculty} />
+              )}
+              {grouped.depts.map(([dept, rows]) => (
+                <FacultyGroup key={dept} label={dept} rows={rows}
+                  submitting={submitting} hasPrincipal={hasPrincipal}
+                  editingId={editingId} onEdit={startEdit} onToggle={toggleFlag} onDelete={deleteFaculty} />
+              ))}
+            </>
+          )}
         </div>
 
         {/* Dept order */}
-        <div className="portal-card">
-          <div className="portal-card-kicker">Department Order</div>
-          <p className="portal-muted" style={{ fontSize: '0.82rem', marginBottom: '12px' }}>
-            Controls the display order on the faculty page. HOD always appears first within a department.
+        <div className="portal-card" style={{ position: 'sticky', top: '90px' }}>
+          <div className="portal-card-kicker">Display Order</div>
+          <p className="portal-muted" style={{ fontSize: '0.82rem', marginBottom: '14px', lineHeight: 1.5 }}>
+            Controls order on the faculty page. HOD always appears first within a department.
           </p>
           {knownDepts.length === 0
-            ? <div className="portal-muted">No departments yet.</div>
+            ? <div className="portal-muted" style={{ fontSize: '0.85rem' }}>Departments will appear here once profiles are added.</div>
             : <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 {knownDepts.map((dept, i) => (
-                  <div key={dept} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 10px', background: '#f7f8fa', borderRadius: '10px', border: '1px solid rgba(0,0,0,0.06)' }}>
-                    <span style={{ flex: 1, fontWeight: 700, fontSize: '0.88rem' }}>{dept}</span>
-                    <button className="portal-btn portal-btn-small portal-btn-secondary" type="button"
-                      style={{ padding: '4px 8px' }} onClick={() => moveDept(i, -1)} disabled={i === 0}>↑</button>
-                    <button className="portal-btn portal-btn-small portal-btn-secondary" type="button"
-                      style={{ padding: '4px 8px' }} onClick={() => moveDept(i, 1)} disabled={i === knownDepts.length - 1}>↓</button>
+                  <div key={dept} className="dept-order-row">
+                    <span style={{ flex: 1, fontWeight: 700, fontSize: '0.88rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{dept}</span>
+                    <button className="portal-btn portal-btn-small portal-btn-secondary dept-arrow-btn"
+                      type="button" onClick={() => moveDept(i, -1)} disabled={i === 0}>↑</button>
+                    <button className="portal-btn portal-btn-small portal-btn-secondary dept-arrow-btn"
+                      type="button" onClick={() => moveDept(i, 1)} disabled={i === knownDepts.length - 1}>↓</button>
                   </div>
                 ))}
               </div>
@@ -383,60 +404,69 @@ export default function ManageFacultyPage() {
 
 function FacultyGroup({ label, rows, submitting, hasPrincipal, editingId, onEdit, onToggle, onDelete }) {
   return (
-    <div style={{ marginBottom: '1.25rem' }}>
-      <div style={{ fontSize: '0.78rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.8px', color: 'var(--primary-color)', marginBottom: '8px', paddingLeft: '2px' }}>
-        {label}
-      </div>
+    <div style={{ marginBottom: '1.5rem' }}>
+      <div className="faculty-group-label">{label}</div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        {rows.map(f => (
-          <div key={f.id} className={`portal-row${editingId === f.id ? ' portal-row-editing' : ''}`}
-            style={{ gridTemplateColumns: 'minmax(0,1.6fr) minmax(0,1.1fr) minmax(0,1fr) auto' }}>
-
-            {/* Name + email */}
-            <div className="portal-cell">
-              <div className="portal-strong" style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                {[f.title, f.name].filter(Boolean).join(' ') || '—'}
-              </div>
-              {f.email && !f.email.endsWith('@noemail.klh') && (
-                <div className="portal-muted" style={{ fontSize: '0.75rem', overflow: 'hidden', textOverflow: 'ellipsis' }}>{f.email}</div>
-              )}
-            </div>
-
-            {/* Dept / designation */}
-            <div className="portal-cell">
-              <div style={{ fontWeight: 600, fontSize: '0.88rem', overflow: 'hidden', textOverflow: 'ellipsis' }}>{f.department || '—'}</div>
-              {f.designation && <div className="portal-muted" style={{ fontSize: '0.78rem', overflow: 'hidden', textOverflow: 'ellipsis' }}>{f.designation}</div>}
-            </div>
-
-            {/* Roles */}
-            <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', alignItems: 'center' }}>
-              {f.isPrincipal && <span style={{ background: '#A52A2A', color: '#fff', borderRadius: '999px', padding: '2px 8px', fontSize: '0.7rem', fontWeight: 700, whiteSpace: 'nowrap' }}>★ Principal</span>}
-              {f.isHOD      && <span style={{ background: '#A52A2A', color: '#fff', borderRadius: '999px', padding: '2px 8px', fontSize: '0.7rem', fontWeight: 700, whiteSpace: 'nowrap' }}>★ HOD</span>}
-              {(f.isPrincipal || !hasPrincipal) && (
-                <button className="portal-btn portal-btn-small portal-btn-secondary" type="button"
-                  style={{ padding: '3px 8px', fontSize: '0.72rem' }}
-                  onClick={() => onToggle(f.id, 'isPrincipal', f.isPrincipal)} disabled={submitting}>
-                  {f.isPrincipal ? '− Principal' : '+ Principal'}
-                </button>
-              )}
-              <button className="portal-btn portal-btn-small portal-btn-secondary" type="button"
-                style={{ padding: '3px 8px', fontSize: '0.72rem' }}
-                onClick={() => onToggle(f.id, 'isHOD', f.isHOD)} disabled={submitting}>
-                {f.isHOD ? '− HOD' : '+ HOD'}
-              </button>
-            </div>
-
-            {/* Actions */}
-            <div className="portal-actions">
-              <button className="portal-btn portal-btn-small" type="button"
-                onClick={() => onEdit(f)} disabled={submitting}>
-                {editingId === f.id ? 'Editing' : 'Edit'}
-              </button>
-              <button className="portal-btn portal-btn-secondary portal-btn-small" type="button"
-                onClick={() => onDelete(f.id)} disabled={submitting}>Delete</button>
-            </div>
-          </div>
+        {rows.map((f, idx) => (
+          <FacultyRow key={f.id} f={f} idx={idx}
+            submitting={submitting} hasPrincipal={hasPrincipal}
+            isEditing={editingId === f.id}
+            onEdit={onEdit} onToggle={onToggle} onDelete={onDelete} />
         ))}
+      </div>
+    </div>
+  );
+}
+
+function FacultyRow({ f, idx, submitting, hasPrincipal, isEditing, onEdit, onToggle, onDelete }) {
+  const displayName = [f.title, f.name].filter(Boolean).join(' ') || '—';
+  const ini = initials(f.name);
+
+  return (
+    <div
+      className={`faculty-list-row${isEditing ? ' faculty-list-row--editing' : ''}`}
+      style={{ animationDelay: `${idx * 40}ms` }}
+    >
+      {/* Avatar */}
+      <div className="faculty-row-avatar">
+        {f.photoUrl
+          ? <img src={f.photoUrl} alt={f.name} className="faculty-row-avatar-img" />
+          : <span className="faculty-row-avatar-initials">{ini}</span>
+        }
+      </div>
+
+      {/* Name + dept */}
+      <div className="faculty-row-info">
+        <div className="faculty-row-name">{displayName}</div>
+        <div className="faculty-row-sub">
+          {[f.department, f.designation].filter(Boolean).join(' · ') || <span className="portal-muted">No dept</span>}
+        </div>
+      </div>
+
+      {/* Badges + role toggles */}
+      <div className="faculty-row-roles">
+        {f.isPrincipal && <span className="role-badge">★ Principal</span>}
+        {f.isHOD       && <span className="role-badge">★ HOD</span>}
+        {(f.isPrincipal || !hasPrincipal) && (
+          <button className="role-toggle-btn" type="button"
+            onClick={() => onToggle(f.id, 'isPrincipal', f.isPrincipal)} disabled={submitting}>
+            {f.isPrincipal ? '− Principal' : '+ Principal'}
+          </button>
+        )}
+        <button className="role-toggle-btn" type="button"
+          onClick={() => onToggle(f.id, 'isHOD', f.isHOD)} disabled={submitting}>
+          {f.isHOD ? '− HOD' : '+ HOD'}
+        </button>
+      </div>
+
+      {/* Actions */}
+      <div className="faculty-row-actions">
+        <button className={`portal-btn portal-btn-small${isEditing ? ' portal-btn-active' : ''}`}
+          type="button" onClick={() => onEdit(f)} disabled={submitting}>
+          {isEditing ? 'Editing…' : 'Edit'}
+        </button>
+        <button className="portal-btn portal-btn-secondary portal-btn-small delete-btn"
+          type="button" onClick={() => onDelete(f.id)} disabled={submitting}>Delete</button>
       </div>
     </div>
   );

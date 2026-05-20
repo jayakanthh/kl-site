@@ -325,11 +325,263 @@ a {
   background: rgba(165,42,42,0.03);
 }
 
+/* ── Animations ──────────────────────────────────────── */
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -600px 0; }
+  100% { background-position: 600px 0; }
+}
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(-8px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ── Toast ───────────────────────────────────────────── */
+.portal-toast {
+  animation: toastIn 0.22s ease both;
+}
+
+/* ── Skeleton loader ─────────────────────────────────── */
+.faculty-row-skeleton {
+  height: 68px;
+  border-radius: 14px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 600px 100%;
+  animation: shimmer 1.4s infinite linear;
+}
+
+/* ── Faculty list row ────────────────────────────────── */
+.faculty-list-row {
+  display: grid;
+  grid-template-columns: 52px 1fr 1fr auto;
+  gap: 14px;
+  align-items: center;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.06);
+  transition: box-shadow 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+  animation: fadeSlideUp 0.32s ease both;
+}
+
+.faculty-list-row:hover {
+  box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+  border-color: rgba(0,0,0,0.1);
+  transform: translateY(-1px);
+}
+
+.faculty-list-row--editing {
+  border-color: rgba(165,42,42,0.35) !important;
+  background: rgba(165,42,42,0.03) !important;
+  box-shadow: 0 4px 18px rgba(165,42,42,0.1) !important;
+}
+
+/* ── Avatar ──────────────────────────────────────────── */
+.faculty-row-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--primary-color), #2e3a59);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  transition: transform 0.2s ease;
+}
+
+.faculty-list-row:hover .faculty-row-avatar {
+  transform: scale(1.07);
+}
+
+.faculty-row-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.faculty-row-avatar-initials {
+  color: #fff;
+  font-weight: 900;
+  font-size: 0.95rem;
+  letter-spacing: 0.5px;
+  user-select: none;
+}
+
+/* Large avatar in edit panel header */
+.faculty-avatar-lg {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--primary-color), #2e3a59);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.15);
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: #fff;
+}
+
+/* ── Row info ────────────────────────────────────────── */
+.faculty-row-info {
+  min-width: 0;
+}
+
+.faculty-row-name {
+  font-weight: 800;
+  color: var(--secondary-color);
+  font-size: 0.92rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.faculty-row-sub {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-top: 2px;
+}
+
+/* ── Role badges + toggles ───────────────────────────── */
+.faculty-row-roles {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  align-items: center;
+  min-width: 0;
+}
+
+.role-badge {
+  background: var(--primary-color);
+  color: #fff;
+  border-radius: 999px;
+  padding: 2px 9px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  white-space: nowrap;
+  animation: fadeSlideUp 0.2s ease both;
+}
+
+.role-toggle-btn {
+  background: rgba(46,58,89,0.07);
+  border: 1px solid rgba(46,58,89,0.14);
+  color: var(--secondary-color);
+  border-radius: 999px;
+  padding: 3px 9px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, transform 0.12s;
+  white-space: nowrap;
+}
+
+.role-toggle-btn:hover:not(:disabled) {
+  background: rgba(165,42,42,0.1);
+  color: var(--primary-color);
+  border-color: rgba(165,42,42,0.25);
+  transform: scale(1.04);
+}
+
+.role-toggle-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── Row actions ─────────────────────────────────────── */
+.faculty-row-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.portal-btn-active {
+  background: linear-gradient(135deg, #2e3a59, #404f72) !important;
+}
+
+.delete-btn {
+  transition: background 0.15s, color 0.15s, transform 0.12s !important;
+}
+
+.delete-btn:hover:not(:disabled) {
+  background: rgba(220,38,38,0.1) !important;
+  color: #9b1c1c !important;
+  border-color: rgba(220,38,38,0.25) !important;
+  transform: scale(1.04);
+}
+
+/* ── Group label ─────────────────────────────────────── */
+.faculty-group-label {
+  font-size: 0.75rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.9px;
+  color: var(--primary-color);
+  margin-bottom: 8px;
+  padding-left: 2px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.faculty-group-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(165,42,42,0.25), transparent);
+  border-radius: 2px;
+}
+
+/* ── Dept order panel ────────────────────────────────── */
+.dept-order-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  background: rgba(46,58,89,0.04);
+  border-radius: 10px;
+  border: 1px solid rgba(0,0,0,0.06);
+  transition: background 0.15s, transform 0.15s;
+}
+
+.dept-order-row:hover {
+  background: rgba(46,58,89,0.07);
+  transform: translateX(2px);
+}
+
+.dept-arrow-btn {
+  padding: 4px 9px !important;
+  font-size: 0.85rem !important;
+  transition: transform 0.12s !important;
+}
+
+.dept-arrow-btn:hover:not(:disabled) {
+  transform: scale(1.15);
+}
+
+/* ── Edit panel ──────────────────────────────────────── */
+.portal-edit-panel {
+  overflow: hidden;
+}
+
+/* ── Responsive ──────────────────────────────────────── */
 @media (max-width: 900px) {
-  .portal-grid {
-    grid-template-columns: 1fr;
+  .portal-grid { grid-template-columns: 1fr; }
+  .portal-split { grid-template-columns: 1fr; }
+  .faculty-list-row {
+    grid-template-columns: 44px 1fr auto;
+    grid-template-rows: auto auto;
   }
-  .portal-split {
-    grid-template-columns: 1fr;
-  }
+  .faculty-row-roles { grid-column: 1 / -1; }
+  .faculty-row-actions { grid-column: 1 / -1; }
 }
