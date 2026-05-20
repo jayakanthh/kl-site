@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 const TITLE_OPTIONS = ['', 'Dr.', 'Prof.', 'Mr.', 'Ms.', 'Mrs.', 'Er.'];
 const DEPT_OPTIONS  = ['CSE', 'CS&IT', 'AI & Data Science', 'ECE', 'Freshman Engineering', 'MCA', 'BCA', 'MBA', 'BBA'];
-const RANK_OPTIONS  = ['', 'Professor', 'Associate Professor', 'Assistant Professor'];
+const DESIG_OPTIONS = ['Professor', 'Associate Professor', 'Assistant Professor', 'Lecturer', 'Senior Lecturer'];
 
 function fromLines(v) {
   return String(v || '').split('\n').map(s => s.trim()).filter(Boolean);
@@ -14,7 +14,7 @@ function fromLines(v) {
 const EMPTY = {
   title: '', name: '', department: '', designation: '',
   email: '', linkedin: '', xHandle: '', googlePlus: '',
-  subjectsText: '', photoUrl: '', rank: '',
+  subjectsText: '', photoUrl: '',
   isPrincipal: false, isHOD: false,
 };
 
@@ -62,20 +62,20 @@ export default function AddFacultyPage() {
 
   const set = (key) => (e) => setForm(f => ({ ...f, [key]: e.target.value }));
 
-  const onPrincipalChange = (e) => {
-    if (e.target.checked && principalBlocked) {
+  const onPrincipalChange = () => {
+    if (!form.isPrincipal && principalBlocked) {
       setWarn('There is already a Principal assigned. Please delete that profile if you wish to change.');
       return;
     }
-    setForm(f => ({ ...f, isPrincipal: e.target.checked }));
+    setForm(f => ({ ...f, isPrincipal: !f.isPrincipal }));
   };
 
-  const onHodChange = (e) => {
-    if (e.target.checked && hodBlocked) {
+  const onHodChange = () => {
+    if (!form.isHOD && hodBlocked) {
       setWarn('There is already a HOD assigned for this department. Please remove that role if you wish to change.');
       return;
     }
-    setForm(f => ({ ...f, isHOD: e.target.checked }));
+    setForm(f => ({ ...f, isHOD: !f.isHOD }));
   };
 
   const uploadPhoto = async (file) => {
@@ -110,7 +110,6 @@ export default function AddFacultyPage() {
           googlePlus: form.googlePlus.trim(),
           subjects: fromLines(form.subjectsText),
           photoUrl: form.photoUrl,
-          rank: form.rank,
           isPrincipal: form.isPrincipal,
           isHOD: form.isHOD,
         }),
@@ -155,21 +154,12 @@ export default function AddFacultyPage() {
               <datalist id="dept-opts">{DEPT_OPTIONS.map(d => <option key={d} value={d} />)}</datalist>
             </label>
             <label className="portal-label">Designation
-              <input className="portal-input" value={form.designation} onChange={set('designation')} placeholder="e.g. Associate Professor" />
+              <input className="portal-input" list="desig-opts" value={form.designation} onChange={set('designation')} placeholder="e.g. Associate Professor" />
+              <datalist id="desig-opts">{DESIG_OPTIONS.map(d => <option key={d} value={d} />)}</datalist>
             </label>
           </div>
 
-          {/* Row 3: Rank */}
-          <div className="portal-grid" style={{ marginBottom: '12px' }}>
-            <label className="portal-label">Academic Rank
-              <select className="portal-input" value={form.rank} onChange={set('rank')}>
-                {RANK_OPTIONS.map(o => <option key={o} value={o}>{o || '— None —'}</option>)}
-              </select>
-            </label>
-            <div />
-          </div>
-
-          {/* Row 4: Email */}
+          {/* Row 3: Email */}
           <div style={{ marginBottom: '12px' }}>
             <label className="portal-label">Email <span className="portal-muted" style={{ fontWeight: 600 }}>(optional — shown as contact link)</span>
               <input className="portal-input" type="email" value={form.email} onChange={set('email')} placeholder="name@klh.edu.in" />
@@ -219,39 +209,27 @@ export default function AddFacultyPage() {
             </label>
           </div>
 
-          {/* Roles — greyed out when already taken */}
-          <div style={{ display: 'flex', gap: '2rem', marginBottom: '20px' }}>
-            <label style={{
-              display: 'flex', alignItems: 'center', gap: '0.5rem',
-              cursor: principalBlocked ? 'not-allowed' : 'pointer',
-              fontWeight: 700, color: 'var(--secondary-color)',
-              opacity: principalBlocked ? 0.4 : 1,
-              userSelect: 'none',
-            }}>
-              <input type="checkbox" checked={form.isPrincipal} onChange={onPrincipalChange} />
-              Principal
-              {principalBlocked && (
-                <span style={{ fontSize: '0.74rem', fontWeight: 600, color: '#92400e', background: 'rgba(251,191,36,0.15)', padding: '1px 7px', borderRadius: 99 }}>
-                  taken
-                </span>
-              )}
-            </label>
-
-            <label style={{
-              display: 'flex', alignItems: 'center', gap: '0.5rem',
-              cursor: hodBlocked ? 'not-allowed' : 'pointer',
-              fontWeight: 700, color: 'var(--secondary-color)',
-              opacity: hodBlocked ? 0.4 : 1,
-              userSelect: 'none',
-            }}>
-              <input type="checkbox" checked={form.isHOD} onChange={onHodChange} />
-              HOD
-              {hodBlocked && (
-                <span style={{ fontSize: '0.74rem', fontWeight: 600, color: '#92400e', background: 'rgba(251,191,36,0.15)', padding: '1px 7px', borderRadius: 99 }}>
-                  taken
-                </span>
-              )}
-            </label>
+          {/* Roles — pill selectors */}
+          <div style={{ marginBottom: '20px' }}>
+            <div className="portal-card-kicker" style={{ margin: '0 0 10px' }}>Roles</div>
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                className={`role-pill-btn${form.isPrincipal ? ' role-pill-btn--active' : ''}${principalBlocked ? ' role-pill-btn--blocked' : ''}`}
+                onClick={onPrincipalChange}
+              >
+                ★ Principal
+                {principalBlocked && <span style={{ marginLeft: 6, fontSize: '0.72rem', opacity: 0.8 }}>taken</span>}
+              </button>
+              <button
+                type="button"
+                className={`role-pill-btn${form.isHOD ? ' role-pill-btn--active' : ''}${hodBlocked ? ' role-pill-btn--blocked' : ''}`}
+                onClick={onHodChange}
+              >
+                ★ HOD
+                {hodBlocked && <span style={{ marginLeft: 6, fontSize: '0.72rem', opacity: 0.8 }}>taken</span>}
+              </button>
+            </div>
           </div>
 
           {/* Submit */}

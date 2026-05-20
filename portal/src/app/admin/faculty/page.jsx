@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 const TITLE_OPTIONS = ['', 'Dr.', 'Prof.', 'Mr.', 'Ms.', 'Mrs.', 'Er.'];
 const DEPT_OPTIONS  = ['CSE', 'CS&IT', 'AI & Data Science', 'ECE', 'Freshman Engineering', 'MCA', 'BCA', 'MBA', 'BBA'];
-const RANK_OPTIONS  = ['', 'Professor', 'Associate Professor', 'Assistant Professor'];
+const DESIG_OPTIONS = ['Professor', 'Associate Professor', 'Assistant Professor', 'Lecturer', 'Senior Lecturer'];
 
 function toLines(v) { return Array.isArray(v) ? v.join('\n') : String(v || ''); }
 function fromLines(v) { return String(v || '').split('\n').map(s => s.trim()).filter(Boolean); }
@@ -22,7 +22,7 @@ function initials(name) {
 const EMPTY_EDIT = {
   title: '', name: '', department: '', designation: '', email: '',
   linkedin: '', xHandle: '', googlePlus: '', subjectsText: '', photoUrl: '',
-  rank: '', isPrincipal: false, isHOD: false,
+  isPrincipal: false, isHOD: false,
 };
 
 export default function ManageFacultyPage() {
@@ -101,7 +101,7 @@ export default function ManageFacultyPage() {
       email: f.email?.endsWith('@noemail.klh') ? '' : (f.email || ''),
       linkedin: f.linkedin || '', xHandle: f.xHandle || '', googlePlus: f.googlePlus || '',
       subjectsText: toLines(f.subjects), photoUrl: f.photoUrl || '',
-      rank: f.rank || '', isPrincipal: f.isPrincipal, isHOD: f.isHOD,
+      isPrincipal: f.isPrincipal, isHOD: f.isHOD,
     });
     setTimeout(() => {
       editRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -130,7 +130,6 @@ export default function ManageFacultyPage() {
           googlePlus: editForm.googlePlus.trim(),
           subjects: fromLines(editForm.subjectsText),
           photoUrl: editForm.photoUrl,
-          rank: editForm.rank,
           isPrincipal: editForm.isPrincipal, isHOD: editForm.isHOD,
         }),
       });
@@ -225,20 +224,20 @@ export default function ManageFacultyPage() {
   const ef = editForm;
   const setEf = (key) => (e) => setEditForm(f => ({ ...f, [key]: e.target.value }));
 
-  const onPrincipalChange = (e) => {
-    if (e.target.checked && hasOtherPrincipal) {
+  const onPrincipalChange = () => {
+    if (!editForm.isPrincipal && hasOtherPrincipal) {
       setWarn('There is already a Principal assigned. Please delete that profile if you wish to change.');
       return;
     }
-    setEditForm(f => ({ ...f, isPrincipal: e.target.checked }));
+    setEditForm(f => ({ ...f, isPrincipal: !f.isPrincipal }));
   };
 
-  const onHodChange = (e) => {
-    if (e.target.checked && hasHodInSameDept) {
+  const onHodChange = () => {
+    if (!editForm.isHOD && hasHodInSameDept) {
       setWarn('There is already a HOD assigned for this department. Please remove that role if you wish to change.');
       return;
     }
-    setEditForm(f => ({ ...f, isHOD: e.target.checked }));
+    setEditForm(f => ({ ...f, isHOD: !f.isHOD }));
   };
 
   return (
@@ -296,32 +295,25 @@ export default function ManageFacultyPage() {
               <datalist id="edit-dept-opts">{DEPT_OPTIONS.map(d => <option key={d} value={d} />)}</datalist>
             </label>
             <label className="portal-label">Designation
-              <input className="portal-input" value={ef.designation} onChange={setEf('designation')} />
+              <input className="portal-input" list="edit-desig-opts" value={ef.designation} onChange={setEf('designation')} placeholder="e.g. Associate Professor" />
+              <datalist id="edit-desig-opts">{DESIG_OPTIONS.map(d => <option key={d} value={d} />)}</datalist>
             </label>
           </div>
           <div className="portal-grid" style={{ marginBottom: '12px' }}>
-            <label className="portal-label">Academic Rank
-              <select className="portal-input" value={ef.rank} onChange={setEf('rank')}>
-                {RANK_OPTIONS.map(o => <option key={o} value={o}>{o || '— None —'}</option>)}
-              </select>
-            </label>
             <label className="portal-label">Email (optional)
               <input className="portal-input" type="email" value={ef.email} onChange={setEf('email')} placeholder="name@klh.edu.in" />
             </label>
-          </div>
-          <div className="portal-grid" style={{ marginBottom: '12px' }}>
             <label className="portal-label">LinkedIn URL
               <input className="portal-input" value={ef.linkedin} onChange={setEf('linkedin')} placeholder="https://linkedin.com/in/…" />
             </label>
+          </div>
+          <div className="portal-grid" style={{ marginBottom: '12px' }}>
             <label className="portal-label">X Handle
               <input className="portal-input" value={ef.xHandle} onChange={setEf('xHandle')} placeholder="@handle" />
             </label>
-          </div>
-          <div className="portal-grid" style={{ marginBottom: '12px' }}>
             <label className="portal-label">Google+ URL
               <input className="portal-input" value={ef.googlePlus} onChange={setEf('googlePlus')} placeholder="https://plus.google.com/…" />
             </label>
-            <div />
           </div>
           <div style={{ marginBottom: '12px' }}>
             <label className="portal-label">Photo
@@ -344,39 +336,27 @@ export default function ManageFacultyPage() {
             </label>
           </div>
 
-          {/* Role checkboxes — greyed out when role already taken by someone else */}
-          <div style={{ display: 'flex', gap: '2rem', marginBottom: '16px' }}>
-            <label style={{
-              display: 'flex', alignItems: 'center', gap: '0.5rem',
-              fontWeight: 700, color: 'var(--secondary-color)',
-              opacity: (hasOtherPrincipal && !ef.isPrincipal) ? 0.4 : 1,
-              cursor: (hasOtherPrincipal && !ef.isPrincipal) ? 'not-allowed' : 'pointer',
-              userSelect: 'none',
-            }}>
-              <input type="checkbox" checked={ef.isPrincipal} onChange={onPrincipalChange} />
-              Principal
-              {hasOtherPrincipal && !ef.isPrincipal && (
-                <span style={{ fontSize: '0.74rem', fontWeight: 600, color: '#92400e', background: 'rgba(251,191,36,0.15)', padding: '1px 7px', borderRadius: 99 }}>
-                  taken
-                </span>
-              )}
-            </label>
-
-            <label style={{
-              display: 'flex', alignItems: 'center', gap: '0.5rem',
-              fontWeight: 700, color: 'var(--secondary-color)',
-              opacity: (hasHodInSameDept && !ef.isHOD) ? 0.4 : 1,
-              cursor: (hasHodInSameDept && !ef.isHOD) ? 'not-allowed' : 'pointer',
-              userSelect: 'none',
-            }}>
-              <input type="checkbox" checked={ef.isHOD} onChange={onHodChange} />
-              HOD
-              {hasHodInSameDept && !ef.isHOD && (
-                <span style={{ fontSize: '0.74rem', fontWeight: 600, color: '#92400e', background: 'rgba(251,191,36,0.15)', padding: '1px 7px', borderRadius: 99 }}>
-                  taken
-                </span>
-              )}
-            </label>
+          {/* Role pill selectors */}
+          <div style={{ marginBottom: '6px' }}>
+            <div className="portal-card-kicker" style={{ margin: '0 0 10px' }}>Roles</div>
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                className={`role-pill-btn${ef.isPrincipal ? ' role-pill-btn--active' : ''}${hasOtherPrincipal && !ef.isPrincipal ? ' role-pill-btn--blocked' : ''}`}
+                onClick={onPrincipalChange}
+              >
+                ★ Principal
+                {hasOtherPrincipal && !ef.isPrincipal && <span style={{ marginLeft: 6, fontSize: '0.72rem', opacity: 0.8 }}>taken</span>}
+              </button>
+              <button
+                type="button"
+                className={`role-pill-btn${ef.isHOD ? ' role-pill-btn--active' : ''}${hasHodInSameDept && !ef.isHOD ? ' role-pill-btn--blocked' : ''}`}
+                onClick={onHodChange}
+              >
+                ★ HOD
+                {hasHodInSameDept && !ef.isHOD && <span style={{ marginLeft: 6, fontSize: '0.72rem', opacity: 0.8 }}>taken</span>}
+              </button>
+            </div>
           </div>
 
           <div style={{ display: 'flex', gap: '10px' }}>
@@ -497,11 +477,10 @@ function FacultyRow({ f, idx, submitting, isEditing, onEdit, onDelete }) {
         </div>
       </div>
 
-      {/* Role + rank badges — no toggle buttons */}
+      {/* Role badges only */}
       <div className="faculty-row-roles">
         {f.isPrincipal && <span className="role-badge">★ Principal</span>}
         {f.isHOD       && <span className="role-badge">★ HOD</span>}
-        {f.rank        && <span className="rank-badge">{f.rank}</span>}
       </div>
 
       {/* Actions */}

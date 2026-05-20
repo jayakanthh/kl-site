@@ -536,6 +536,39 @@ a {
   animation: fadeSlideUp 0.2s ease both;
 }
 
+/* ── Role pill selectors (replace checkboxes) ─────── */
+.role-pill-btn {
+  padding: 7px 18px;
+  border-radius: 999px;
+  border: 2px solid rgba(46, 58, 89, 0.18);
+  background: transparent;
+  color: var(--secondary-color);
+  font-weight: 800;
+  font-size: 0.86rem;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.1s;
+  white-space: nowrap;
+}
+.role-pill-btn:hover:not(.role-pill-btn--blocked) {
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+  transform: scale(1.03);
+}
+.role-pill-btn--active {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  color: #fff;
+}
+.role-pill-btn--active:hover {
+  background: #b91c1c;
+  border-color: #b91c1c;
+  color: #fff;
+}
+.role-pill-btn--blocked {
+  opacity: 0.38;
+  cursor: not-allowed;
+}
+
 .role-toggle-btn {
   background: rgba(46,58,89,0.07);
   border: 1px solid rgba(46,58,89,0.14);
