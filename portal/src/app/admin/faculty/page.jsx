@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 const TITLE_OPTIONS = ['', 'Dr.', 'Prof.', 'Mr.', 'Ms.', 'Mrs.', 'Er.'];
 const DEPT_OPTIONS  = ['CSE', 'CS&IT', 'AI & Data Science', 'ECE', 'Freshman Engineering', 'MCA', 'BCA', 'MBA', 'BBA'];
+const RANK_OPTIONS  = ['', 'Professor', 'Associate Professor', 'Assistant Professor'];
 
 function toLines(v) { return Array.isArray(v) ? v.join('\n') : String(v || ''); }
 function fromLines(v) { return String(v || '').split('\n').map(s => s.trim()).filter(Boolean); }
@@ -21,7 +22,7 @@ function initials(name) {
 const EMPTY_EDIT = {
   title: '', name: '', department: '', designation: '', email: '',
   linkedin: '', xHandle: '', googlePlus: '', subjectsText: '', photoUrl: '',
-  isPrincipal: false, isHOD: false,
+  rank: '', isPrincipal: false, isHOD: false,
 };
 
 export default function ManageFacultyPage() {
@@ -100,7 +101,7 @@ export default function ManageFacultyPage() {
       email: f.email?.endsWith('@noemail.klh') ? '' : (f.email || ''),
       linkedin: f.linkedin || '', xHandle: f.xHandle || '', googlePlus: f.googlePlus || '',
       subjectsText: toLines(f.subjects), photoUrl: f.photoUrl || '',
-      isPrincipal: f.isPrincipal, isHOD: f.isHOD,
+      rank: f.rank || '', isPrincipal: f.isPrincipal, isHOD: f.isHOD,
     });
     setTimeout(() => {
       editRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -129,6 +130,7 @@ export default function ManageFacultyPage() {
           googlePlus: editForm.googlePlus.trim(),
           subjects: fromLines(editForm.subjectsText),
           photoUrl: editForm.photoUrl,
+          rank: editForm.rank,
           isPrincipal: editForm.isPrincipal, isHOD: editForm.isHOD,
         }),
       });
@@ -298,20 +300,28 @@ export default function ManageFacultyPage() {
             </label>
           </div>
           <div className="portal-grid" style={{ marginBottom: '12px' }}>
+            <label className="portal-label">Academic Rank
+              <select className="portal-input" value={ef.rank} onChange={setEf('rank')}>
+                {RANK_OPTIONS.map(o => <option key={o} value={o}>{o || '— None —'}</option>)}
+              </select>
+            </label>
             <label className="portal-label">Email (optional)
               <input className="portal-input" type="email" value={ef.email} onChange={setEf('email')} placeholder="name@klh.edu.in" />
             </label>
+          </div>
+          <div className="portal-grid" style={{ marginBottom: '12px' }}>
             <label className="portal-label">LinkedIn URL
               <input className="portal-input" value={ef.linkedin} onChange={setEf('linkedin')} placeholder="https://linkedin.com/in/…" />
             </label>
-          </div>
-          <div className="portal-grid" style={{ marginBottom: '12px' }}>
             <label className="portal-label">X Handle
               <input className="portal-input" value={ef.xHandle} onChange={setEf('xHandle')} placeholder="@handle" />
             </label>
+          </div>
+          <div className="portal-grid" style={{ marginBottom: '12px' }}>
             <label className="portal-label">Google+ URL
               <input className="portal-input" value={ef.googlePlus} onChange={setEf('googlePlus')} placeholder="https://plus.google.com/…" />
             </label>
+            <div />
           </div>
           <div style={{ marginBottom: '12px' }}>
             <label className="portal-label">Photo
@@ -487,10 +497,11 @@ function FacultyRow({ f, idx, submitting, isEditing, onEdit, onDelete }) {
         </div>
       </div>
 
-      {/* Role badges only — no toggle buttons */}
+      {/* Role + rank badges — no toggle buttons */}
       <div className="faculty-row-roles">
         {f.isPrincipal && <span className="role-badge">★ Principal</span>}
         {f.isHOD       && <span className="role-badge">★ HOD</span>}
+        {f.rank        && <span className="rank-badge">{f.rank}</span>}
       </div>
 
       {/* Actions */}

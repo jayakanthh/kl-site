@@ -50,6 +50,7 @@ export async function POST(req) {
       googlePlus: body?.googlePlus,
       subjects: body?.subjects,
       photoUrl: body?.photoUrl,
+      rank: body?.rank || '',
       isPrincipal: body?.isPrincipal === true,
       isHOD: body?.isHOD === true,
     });
@@ -69,7 +70,7 @@ export async function PUT(req) {
 
     const patch = {};
     const fields = ['email', 'title', 'name', 'department', 'designation', 'linkedin',
-                    'xHandle', 'googlePlus', 'subjects', 'photoUrl', 'isPrincipal', 'isHOD'];
+                    'xHandle', 'googlePlus', 'subjects', 'photoUrl', 'rank', 'isPrincipal', 'isHOD'];
     for (const f of fields) {
       if (body[f] != null) patch[f] = body[f];
     }

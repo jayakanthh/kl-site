@@ -54,4 +54,6 @@ export async function initDb() {
   // Faculty no longer log in — make password_hash optional
   await sql`ALTER TABLE faculty ALTER COLUMN password_hash DROP NOT NULL`.catch(() => null);
   await sql`ALTER TABLE faculty ALTER COLUMN password_hash SET DEFAULT ''`.catch(() => null);
+  // Academic rank: Professor / Associate Professor / Assistant Professor
+  await sql`ALTER TABLE faculty ADD COLUMN IF NOT EXISTS rank TEXT DEFAULT ''`.catch(() => null);
 }

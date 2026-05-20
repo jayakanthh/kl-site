@@ -25,6 +25,7 @@ function rowToRecord(row) {
     xHandle: row.x_handle || '',
     googlePlus: row.google_plus || '',
     subjects: Array.isArray(row.subjects) ? row.subjects : [],
+    rank: row.rank || '',
     lastUpdatedAt: row.last_updated_at,
     createdAt: row.created_at,
   };
@@ -94,13 +95,14 @@ export async function createFaculty(input) {
   // Email is optional — use a placeholder if not provided so the UNIQUE NOT NULL constraint is met
   const email = input.email ? normalizeEmail(input.email) : `${id}@noemail.klh`;
   const subjects = Array.isArray(input.subjects) ? input.subjects.map(String) : [];
+  const rank = String(input.rank || '').trim();
 
   try {
     const rows = await sql`
       INSERT INTO faculty (
         id, email, name, department, designation,
         is_principal, is_hod, photo_url,
-        title, linkedin, x_handle, google_plus, subjects,
+        title, linkedin, x_handle, google_plus, subjects, rank,
         password_hash
       ) VALUES (
         ${id}, ${email},
@@ -113,7 +115,7 @@ export async function createFaculty(input) {
         ${String(input.linkedin || '').trim()},
         ${String(input.xHandle || '').trim()},
         ${String(input.googlePlus || '').trim()},
-        ${JSON.stringify(subjects)},
+        ${JSON.stringify(subjects)}, ${rank},
         ''
       ) RETURNING *
     `;
@@ -158,6 +160,7 @@ export async function updateFacultyById(id, patch) {
   const subjects    = patch.subjects    != null
     ? (Array.isArray(patch.subjects) ? patch.subjects.map(String) : [])
     : (Array.isArray(cur.subjects) ? cur.subjects : []);
+  const rank        = patch.rank        != null ? String(patch.rank).trim()          : (cur.rank || '');
 
   // Email: update only if explicitly provided
   let email = cur.email;
@@ -174,6 +177,7 @@ export async function updateFacultyById(id, patch) {
       linkedin = ${linkedin}, x_handle = ${xHandle},
       google_plus = ${googlePlus},
       subjects = ${JSON.stringify(subjects)},
+      rank = ${rank},
       last_updated_at = NOW()
     WHERE id = ${id} RETURNING *
   `;

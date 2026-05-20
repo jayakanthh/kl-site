@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 const TITLE_OPTIONS = ['', 'Dr.', 'Prof.', 'Mr.', 'Ms.', 'Mrs.', 'Er.'];
 const DEPT_OPTIONS  = ['CSE', 'CS&IT', 'AI & Data Science', 'ECE', 'Freshman Engineering', 'MCA', 'BCA', 'MBA', 'BBA'];
+const RANK_OPTIONS  = ['', 'Professor', 'Associate Professor', 'Assistant Professor'];
 
 function fromLines(v) {
   return String(v || '').split('\n').map(s => s.trim()).filter(Boolean);
@@ -13,7 +14,7 @@ function fromLines(v) {
 const EMPTY = {
   title: '', name: '', department: '', designation: '',
   email: '', linkedin: '', xHandle: '', googlePlus: '',
-  subjectsText: '', photoUrl: '',
+  subjectsText: '', photoUrl: '', rank: '',
   isPrincipal: false, isHOD: false,
 };
 
@@ -109,6 +110,7 @@ export default function AddFacultyPage() {
           googlePlus: form.googlePlus.trim(),
           subjects: fromLines(form.subjectsText),
           photoUrl: form.photoUrl,
+          rank: form.rank,
           isPrincipal: form.isPrincipal,
           isHOD: form.isHOD,
         }),
@@ -157,14 +159,24 @@ export default function AddFacultyPage() {
             </label>
           </div>
 
-          {/* Row 3: Email */}
+          {/* Row 3: Rank */}
+          <div className="portal-grid" style={{ marginBottom: '12px' }}>
+            <label className="portal-label">Academic Rank
+              <select className="portal-input" value={form.rank} onChange={set('rank')}>
+                {RANK_OPTIONS.map(o => <option key={o} value={o}>{o || '— None —'}</option>)}
+              </select>
+            </label>
+            <div />
+          </div>
+
+          {/* Row 4: Email */}
           <div style={{ marginBottom: '12px' }}>
             <label className="portal-label">Email <span className="portal-muted" style={{ fontWeight: 600 }}>(optional — shown as contact link)</span>
               <input className="portal-input" type="email" value={form.email} onChange={set('email')} placeholder="name@klh.edu.in" />
             </label>
           </div>
 
-          {/* Row 4: Social */}
+          {/* Row 5: Social */}
           <div className="portal-grid" style={{ marginBottom: '12px' }}>
             <label className="portal-label">LinkedIn URL
               <input className="portal-input" value={form.linkedin} onChange={set('linkedin')} placeholder="https://linkedin.com/in/…" />
