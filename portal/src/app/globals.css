@@ -16,6 +16,8 @@ body {
   margin: 0;
   font-family: var(--font-family);
   color: var(--secondary-color);
+  height: 100%;
+  overflow: hidden;
 }
 
 a {
@@ -31,9 +33,10 @@ a {
 }
 
 .portal-shell {
-  min-height: 100vh;
+  height: 100%;
   background: linear-gradient(180deg, rgba(46, 58, 89, 0.06), rgba(46, 58, 89, 0.02));
   padding-top: 72px;
+  overflow-y: auto;
 }
 
 .portal-shell-top {
@@ -626,7 +629,7 @@ a {
 
 /* ── Login page ──────────────────────────────────────── */
 .login-screen {
-  min-height: calc(100vh - 72px);
+  min-height: calc(100% - 68px); /* subtract shell-body padding (28+40) */
   display: flex;
   align-items: center;
   justify-content: center;
