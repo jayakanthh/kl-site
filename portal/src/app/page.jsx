@@ -59,7 +59,7 @@ export default function Page() {
 
         {/* Heading */}
         <div className="login-heading">
-          <h1>Faculty Portal</h1>
+          <h1>Faculty Profiles Portal</h1>
           <p>KLH Bachupally</p>
         </div>
 
