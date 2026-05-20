@@ -154,8 +154,10 @@ export default function AddFacultyPage() {
               <datalist id="dept-opts">{DEPT_OPTIONS.map(d => <option key={d} value={d} />)}</datalist>
             </label>
             <label className="portal-label">Designation
-              <input className="portal-input" list="desig-opts" value={form.designation} onChange={set('designation')} placeholder="e.g. Associate Professor" />
-              <datalist id="desig-opts">{DESIG_OPTIONS.map(d => <option key={d} value={d} />)}</datalist>
+              <select className="portal-input" value={form.designation} onChange={set('designation')}>
+                <option value="">— None —</option>
+                {DESIG_OPTIONS.map(d => <option key={d} value={d}>{d}</option>)}
+              </select>
             </label>
           </div>
 
