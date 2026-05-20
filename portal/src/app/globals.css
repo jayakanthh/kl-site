@@ -628,13 +628,14 @@ a {
 
 /* ── Login page ──────────────────────────────────────── */
 .login-screen {
-  min-height: calc(100% - 68px); /* subtract shell-body padding (28+40) */
+  position: fixed;
+  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 24px 16px;
-  position: relative;
   overflow: hidden;
+  background: linear-gradient(180deg, rgba(46,58,89,0.05), rgba(46,58,89,0.02));
 }
 
 /* Decorative blobs */
@@ -647,19 +648,19 @@ a {
 }
 
 .login-blob-1 {
-  width: 420px;
-  height: 420px;
+  width: 60vw;
+  height: 60vw;
   background: var(--primary-color);
-  top: -80px;
-  right: -100px;
+  top: -15vw;
+  right: -10vw;
 }
 
 .login-blob-2 {
-  width: 380px;
-  height: 380px;
+  width: 55vw;
+  height: 55vw;
   background: var(--secondary-color);
-  bottom: -80px;
-  left: -100px;
+  bottom: -15vw;
+  left: -10vw;
 }
 
 .login-card {
