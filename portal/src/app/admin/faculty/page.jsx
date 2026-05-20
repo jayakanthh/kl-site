@@ -295,10 +295,8 @@ export default function ManageFacultyPage() {
               <datalist id="edit-dept-opts">{DEPT_OPTIONS.map(d => <option key={d} value={d} />)}</datalist>
             </label>
             <label className="portal-label">Designation
-              <select className="portal-input" value={ef.designation} onChange={setEf('designation')}>
-                <option value="">— None —</option>
-                {DESIG_OPTIONS.map(d => <option key={d} value={d}>{d}</option>)}
-              </select>
+              <input className="portal-input" list="edit-desig-opts" value={ef.designation} onChange={setEf('designation')} placeholder="e.g. Associate Professor" />
+              <datalist id="edit-desig-opts">{DESIG_OPTIONS.map(d => <option key={d} value={d} />)}</datalist>
             </label>
           </div>
           <div className="portal-grid" style={{ marginBottom: '12px' }}>
