@@ -70,7 +70,15 @@ export async function getPublicFacultyList() {
     else { const cmp = deptA.localeCompare(deptB); if (cmp !== 0) return cmp; }
 
     if (a.isHOD !== b.isHOD) return a.isHOD ? -1 : 1;
-    return 0;
+
+    const desigRank = (d) => {
+      const s = String(d || '').toLowerCase();
+      if (s.includes('professor') && !s.includes('associate') && !s.includes('assistant')) return 1;
+      if (s.includes('associate')) return 2;
+      if (s.includes('assistant')) return 3;
+      return 4;
+    };
+    return desigRank(a.designation) - desigRank(b.designation);
   });
 
   return faculty;
