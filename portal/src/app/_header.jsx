@@ -1,6 +1,6 @@
-/* eslint-disable no-unused-vars */
 'use client';
 
+// eslint-disable-next-line no-unused-vars
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 
@@ -10,12 +10,9 @@ export default function PortalHeader() {
   const isAdmin  = pathname?.startsWith('/admin');
 
   const logout = async () => {
-    const t = window.localStorage.getItem('klh_admin_token') || '';
-    window.localStorage.removeItem('klh_admin_token');
-    window.sessionStorage.removeItem('klh_admin_token');
     await fetch('/api/admin/logout', {
-      method: 'POST', credentials: 'include',
-      headers: t ? { authorization: `Bearer ${t}` } : {},
+      method: 'POST',
+      credentials: 'include',
     }).catch(() => null);
     router.push('/');
     router.refresh();

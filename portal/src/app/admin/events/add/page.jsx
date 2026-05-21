@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -6,10 +5,6 @@ import { useRouter } from 'next/navigation';
 
 const DEPT_OPTIONS = ['Campus Wide', 'CSE', 'CS&IT', 'AI & Data Science', 'ECE', 'Freshman Engineering', 'MCA', 'BCA', 'MBA', 'BBA'];
 
-function getAuth() {
-  const t = window.localStorage.getItem('klh_admin_token') || window.sessionStorage.getItem('klh_admin_token') || '';
-  return t ? { authorization: `Bearer ${t}` } : {};
-}
 
 const EMPTY = {
   title: '', description: '', departments: [], eventDate: '', imageUrl: '', link: '',
@@ -30,7 +25,7 @@ export default function AddEventPage() {
     setUploading(true);
     try {
       const fd = new FormData(); fd.append('file', file);
-      const res = await fetch('/api/upload/photo', { method: 'POST', credentials: 'include', headers: getAuth(), body: fd });
+      const res = await fetch('/api/upload/photo', { method: 'POST', credentials: 'include', body: fd });
       if (!res.ok) throw new Error('Upload failed');
       const data = await res.json();
       setForm(f => ({ ...f, imageUrl: data?.url || '' }));
@@ -45,7 +40,7 @@ export default function AddEventPage() {
     try {
       const res = await fetch('/api/admin/events', {
         method: 'POST', credentials: 'include',
-        headers: { 'content-type': 'application/json', ...getAuth() },
+        headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
           title:       form.title.trim(),
           description: form.description.trim(),

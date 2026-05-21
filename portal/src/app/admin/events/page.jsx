@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -6,10 +5,6 @@ import { useRouter } from 'next/navigation';
 
 const DEPT_OPTIONS = ['Campus Wide', 'CSE', 'CS&IT', 'AI & Data Science', 'ECE', 'Freshman Engineering', 'MCA', 'BCA', 'MBA', 'BBA'];
 
-function getAuth() {
-  const t = window.localStorage.getItem('klh_admin_token') || window.sessionStorage.getItem('klh_admin_token') || '';
-  return t ? { authorization: `Bearer ${t}` } : {};
-}
 
 function formatDate(d) {
   if (!d) return '';
@@ -37,16 +32,13 @@ export default function ManageEventsPage() {
   const [editVisible, setEditVisible] = useState(false);
   const editRef = useRef(null);
 
-  const handleUnauth = useCallback(() => {
-    window.localStorage.removeItem('klh_admin_token');
-    window.sessionStorage.removeItem('klh_admin_token');
-    router.push('/'); router.refresh();
+  const handleUnauth = useCallback(() => {    router.push('/'); router.refresh();
   }, [router]);
 
   const loadAll = useCallback(async () => {
     setLoading(true); setError('');
     try {
-      const res = await fetch('/api/admin/events', { cache: 'no-store', credentials: 'include', headers: getAuth() });
+      const res = await fetch('/api/admin/events', { cache: 'no-store', credentials: 'include' });
       if (res.status === 401) { handleUnauth(); return; }
       if (!res.ok) throw new Error('Failed to load');
       const d = await res.json();
@@ -91,7 +83,7 @@ export default function ManageEventsPage() {
     try {
       const res = await fetch('/api/admin/events', {
         method: 'PUT', credentials: 'include',
-        headers: { 'content-type': 'application/json', ...getAuth() },
+        headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
           id:          editingId,
           title:       editForm.title.trim(),
@@ -115,7 +107,7 @@ export default function ManageEventsPage() {
     setUploading(true);
     try {
       const fd = new FormData(); fd.append('file', file);
-      const res = await fetch('/api/upload/photo', { method: 'POST', credentials: 'include', headers: getAuth(), body: fd });
+      const res = await fetch('/api/upload/photo', { method: 'POST', credentials: 'include', body: fd });
       if (!res.ok) throw new Error('Upload failed');
       const data = await res.json();
       setEditForm(f => ({ ...f, imageUrl: data?.url || '' }));
@@ -129,7 +121,7 @@ export default function ManageEventsPage() {
     try {
       const res = await fetch('/api/admin/events', {
         method: 'DELETE', credentials: 'include',
-        headers: { 'content-type': 'application/json', ...getAuth() },
+        headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ id }),
       });
       if (res.status === 401) { handleUnauth(); return; }

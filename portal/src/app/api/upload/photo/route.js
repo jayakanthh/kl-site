@@ -6,14 +6,8 @@ import { ADMIN_COOKIE, verifySession } from '../../../../lib/portalAuth';
 
 export const runtime = 'nodejs';
 
-function getBearerToken(req) {
-  const auth = req.headers.get('authorization') || '';
-  if (auth.toLowerCase().startsWith('bearer ')) return auth.slice(7).trim();
-  return '';
-}
-
-function getAdminSession(req) {
-  const token = cookies().get(ADMIN_COOKIE)?.value || getBearerToken(req);
+function getAdminSession() {
+  const token = cookies().get(ADMIN_COOKIE)?.value;
   const payload = verifySession(token);
   if (!payload || payload.role !== 'admin') return null;
   return payload;
@@ -27,7 +21,7 @@ function extFromMime(mime) {
 }
 
 export async function POST(req) {
-  const session = getAdminSession(req);
+  const session = getAdminSession();
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   try {

@@ -10,10 +10,6 @@ const DESIG_OPTIONS = ['Professor', 'Associate Professor', 'Assistant Professor'
 function toLines(v) { return Array.isArray(v) ? v.join('\n') : String(v || ''); }
 function fromLines(v) { return String(v || '').split('\n').map(s => s.trim()).filter(Boolean); }
 
-function getAuth() {
-  const t = window.localStorage.getItem('klh_admin_token') || window.sessionStorage.getItem('klh_admin_token') || '';
-  return t ? { authorization: `Bearer ${t}` } : {};
-}
 
 function initials(name) {
   return String(name || '?').split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase();
@@ -61,10 +57,7 @@ export default function ManageFacultyPage() {
     [faculty, editingId, editForm.department]
   );
 
-  const handleUnauth = useCallback(() => {
-    window.localStorage.removeItem('klh_admin_token');
-    window.sessionStorage.removeItem('klh_admin_token');
-    router.push('/');
+  const handleUnauth = useCallback(() => {    router.push('/');
     router.refresh();
   }, [router]);
 
@@ -72,8 +65,8 @@ export default function ManageFacultyPage() {
     setLoading(true); setError('');
     try {
       const [fRes, oRes] = await Promise.all([
-        fetch('/api/admin/faculty', { cache: 'no-store', credentials: 'include', headers: getAuth() }),
-        fetch('/api/admin/deptorder', { cache: 'no-store', credentials: 'include', headers: getAuth() }),
+        fetch('/api/admin/faculty', { cache: 'no-store', credentials: 'include' }),
+        fetch('/api/admin/deptorder', { cache: 'no-store', credentials: 'include' }),
       ]);
       if (fRes.status === 401) { handleUnauth(); return; }
       if (!fRes.ok) throw new Error('Failed to load');
@@ -120,7 +113,7 @@ export default function ManageFacultyPage() {
     try {
       const res = await fetch('/api/admin/faculty', {
         method: 'PUT', credentials: 'include',
-        headers: { 'content-type': 'application/json', ...getAuth() },
+        headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
           id: editingId,
           title: editForm.title, name: editForm.name.trim(),
@@ -146,7 +139,7 @@ export default function ManageFacultyPage() {
     setUploading(true);
     try {
       const fd = new FormData(); fd.append('file', file);
-      const res = await fetch('/api/upload/photo', { method: 'POST', credentials: 'include', headers: getAuth(), body: fd });
+      const res = await fetch('/api/upload/photo', { method: 'POST', credentials: 'include', body: fd });
       if (!res.ok) throw new Error('Upload failed');
       const data = await res.json();
       setEditForm(f => ({ ...f, photoUrl: data?.url || '' }));
@@ -160,7 +153,7 @@ export default function ManageFacultyPage() {
     try {
       const res = await fetch('/api/admin/faculty', {
         method: 'DELETE', credentials: 'include',
-        headers: { 'content-type': 'application/json', ...getAuth() },
+        headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ id }),
       });
       if (res.status === 401) { handleUnauth(); return; }
@@ -178,7 +171,7 @@ export default function ManageFacultyPage() {
     try {
       const res = await fetch('/api/admin/faculty', {
         method: 'DELETE', credentials: 'include',
-        headers: { 'content-type': 'application/json', ...getAuth() },
+        headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ all: true }),
       });
       if (!res.ok) throw new Error('Clear failed');
@@ -198,7 +191,7 @@ export default function ManageFacultyPage() {
     try {
       await fetch('/api/admin/deptorder', {
         method: 'PUT', credentials: 'include',
-        headers: { 'content-type': 'application/json', ...getAuth() },
+        headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ deptOrder: newOrder }),
       });
     } catch { setError('Failed to save order'); }

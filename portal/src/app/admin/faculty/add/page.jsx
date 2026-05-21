@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
@@ -18,10 +17,6 @@ const EMPTY = {
   isPrincipal: false, isHOD: false,
 };
 
-function getAuth() {
-  const t = window.localStorage.getItem('klh_admin_token') || window.sessionStorage.getItem('klh_admin_token') || '';
-  return t ? { authorization: `Bearer ${t}` } : {};
-}
 
 export default function AddFacultyPage() {
   const router = useRouter();
@@ -45,7 +40,7 @@ export default function AddFacultyPage() {
 
   // Fetch existing faculty to know which roles are taken
   useEffect(() => {
-    fetch('/api/admin/faculty', { credentials: 'include', headers: getAuth() })
+    fetch('/api/admin/faculty', { credentials: 'include' })
       .then(r => r.ok ? r.json() : null)
       .then(d => {
         if (!d?.faculty) return;
@@ -83,7 +78,7 @@ export default function AddFacultyPage() {
     try {
       const fd = new FormData();
       fd.append('file', file);
-      const res = await fetch('/api/upload/photo', { method: 'POST', credentials: 'include', headers: getAuth(), body: fd });
+      const res = await fetch('/api/upload/photo', { method: 'POST', credentials: 'include', body: fd });
       if (!res.ok) throw new Error('Upload failed');
       const data = await res.json();
       setForm(f => ({ ...f, photoUrl: data?.url || '' }));
@@ -98,7 +93,7 @@ export default function AddFacultyPage() {
     try {
       const res = await fetch('/api/admin/faculty', {
         method: 'POST', credentials: 'include',
-        headers: { 'content-type': 'application/json', ...getAuth() },
+        headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
           title: form.title,
           name: form.name.trim(),
