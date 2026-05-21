@@ -226,6 +226,7 @@ const Navbar = () => {
               Campus Life <ChevronDown size={14} />
             </a>
             <div className="dropdown-content">
+              <Link href="/campus-life" className="dropdown-item">Events</Link>
               <a href="https://klh.edu.in/sac/" className="dropdown-item">Student Activity Center</a>
               <a href="https://klh.edu.in/bhp-infra-structure/" className="dropdown-item">Infrastructure</a>
               <a href="https://klh.edu.in/hyderabad-campus-bowrampet/all-cells/" className="dropdown-item">Student Clubs</a>

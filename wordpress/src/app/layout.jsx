@@ -1,4 +1,4 @@
-import { Plus_Jakarta_Sans, Syne } from 'next/font/google';
+import { Plus_Jakarta_Sans, Fraunces } from 'next/font/google';
 import '../index.css';
 import '../App.css';
 
@@ -24,10 +24,10 @@ const jakarta = Plus_Jakarta_Sans({
   display: 'swap',
 });
 
-const syne = Syne({
+const fraunces = Fraunces({
   subsets: ['latin'],
-  weight: ['400', '600', '700', '800'],
-  variable: '--font-syne',
+  weight: ['300', '400', '600', '700', '800', '900'],
+  variable: '--font-fraunces',
   display: 'swap',
 });
 
@@ -38,7 +38,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${jakarta.variable} ${syne.variable}`}>
+    <html lang="en" className={`${jakarta.variable} ${fraunces.variable}`}>
       <body>
         <NextTopLoader color="#A52A2A" height={3} showSpinner={false} />
         <Navbar />
