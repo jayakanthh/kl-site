@@ -190,7 +190,7 @@ function parseDepartments(val) {
   if (!val) return [];
   const s = String(val).trim();
   if (s.startsWith('[')) {
-    try { return JSON.parse(s); } catch {}
+    try { return JSON.parse(s); } catch { /* fall through */ }
   }
   return s ? [s] : []; // backward-compat: old rows stored plain string
 }
