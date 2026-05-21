@@ -32,11 +32,11 @@ export async function POST(req) {
     if (!body?.title?.trim()) return NextResponse.json({ error: 'Title is required' }, { status: 400 });
     const created = await createEvent({
       title:       body.title,
-      description: body.description || '',
-      department:  body.department  || '',
-      eventDate:   body.eventDate   || null,
-      imageUrl:    body.imageUrl    || '',
-      link:        body.link        || '',
+      description: body.description  || '',
+      departments: Array.isArray(body.departments) ? body.departments : [],
+      eventDate:   body.eventDate    || null,
+      imageUrl:    body.imageUrl     || '',
+      link:        body.link         || '',
     });
     return NextResponse.json({ event: created }, { status: 201 });
   } catch (e) {
@@ -52,7 +52,7 @@ export async function PUT(req) {
     const id = body?.id;
     if (!id) return NextResponse.json({ error: 'id is required' }, { status: 400 });
     const patch = {};
-    for (const f of ['title', 'description', 'department', 'eventDate', 'imageUrl', 'link']) {
+    for (const f of ['title', 'description', 'departments', 'eventDate', 'imageUrl', 'link']) {
       if (body[f] !== undefined) patch[f] = body[f];
     }
     const updated = await updateEventById(id, patch);

@@ -12,7 +12,7 @@ function getAuth() {
 }
 
 const EMPTY = {
-  title: '', description: '', department: '', eventDate: '', imageUrl: '', link: '',
+  title: '', description: '', departments: [], eventDate: '', imageUrl: '', link: '',
 };
 
 export default function AddEventPage() {
@@ -49,7 +49,7 @@ export default function AddEventPage() {
         body: JSON.stringify({
           title:       form.title.trim(),
           description: form.description.trim(),
-          department:  form.department.trim(),
+          departments: form.departments,
           eventDate:   form.eventDate || null,
           imageUrl:    form.imageUrl,
           link:        form.link.trim(),
@@ -84,12 +84,24 @@ export default function AddEventPage() {
 
           {/* Dept + Date */}
           <div className="portal-grid" style={{ marginBottom: '12px' }}>
-            <label className="portal-label">Department
-              <select className="portal-input" value={form.department} onChange={set('department')}>
-                <option value="">— Select —</option>
-                {DEPT_OPTIONS.map(d => <option key={d} value={d}>{d}</option>)}
-              </select>
-            </label>
+            <div>
+              <div className="portal-label" style={{ marginBottom: 6 }}>Departments <span className="portal-muted" style={{ fontWeight: 400 }}>(pick all that apply)</span></div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                {DEPT_OPTIONS.map(d => {
+                  const active = form.departments.includes(d);
+                  return (
+                    <button key={d} type="button"
+                      className={`role-pill-btn${active ? ' role-pill-btn--active' : ''}`}
+                      onClick={() => setForm(f => ({
+                        ...f,
+                        departments: active ? f.departments.filter(x => x !== d) : [...f.departments, d],
+                      }))}>
+                      {d}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
             <label className="portal-label">Event Date
               <input className="portal-input" type="date" value={form.eventDate} onChange={set('eventDate')} />
             </label>

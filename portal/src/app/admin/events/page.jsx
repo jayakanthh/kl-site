@@ -22,7 +22,7 @@ function toInputDate(d) {
   return String(d).slice(0, 10);
 }
 
-const EMPTY_EDIT = { title: '', description: '', department: '', eventDate: '', imageUrl: '', link: '' };
+const EMPTY_EDIT = { title: '', description: '', departments: [], eventDate: '', imageUrl: '', link: '' };
 
 export default function ManageEventsPage() {
   const router = useRouter();
@@ -57,23 +57,21 @@ export default function ManageEventsPage() {
 
   useEffect(() => { loadAll(); }, [loadAll]);
 
-  // Group events by department
-  const grouped = useMemo(() => {
-    const map = new Map();
-    for (const ev of events) {
-      const dept = ev.department || 'General';
-      if (!map.has(dept)) map.set(dept, []);
-      map.get(dept).push(ev);
-    }
-    return [...map.entries()];
-  }, [events]);
+  // Sort events by date desc (grouping removed — events can span multiple depts)
+  const sorted = useMemo(() => [...events].sort((a, b) => {
+    if (a.eventDate && b.eventDate) return new Date(b.eventDate) - new Date(a.eventDate);
+    if (a.eventDate) return -1;
+    if (b.eventDate) return 1;
+    return 0;
+  }), [events]);
 
   const startEdit = (ev) => {
     setEditVisible(false);
     setEditingId(ev.id);
     setEditForm({
       title: ev.title, description: ev.description,
-      department: ev.department, eventDate: toInputDate(ev.eventDate),
+      departments: Array.isArray(ev.departments) ? ev.departments : [],
+      eventDate: toInputDate(ev.eventDate),
       imageUrl: ev.imageUrl, link: ev.link,
     });
     setTimeout(() => {
@@ -95,10 +93,10 @@ export default function ManageEventsPage() {
         method: 'PUT', credentials: 'include',
         headers: { 'content-type': 'application/json', ...getAuth() },
         body: JSON.stringify({
-          id: editingId,
+          id:          editingId,
           title:       editForm.title.trim(),
           description: editForm.description.trim(),
-          department:  editForm.department.trim(),
+          departments: editForm.departments,
           eventDate:   editForm.eventDate || null,
           imageUrl:    editForm.imageUrl,
           link:        editForm.link.trim(),
@@ -171,12 +169,24 @@ export default function ManageEventsPage() {
             </label>
           </div>
           <div className="portal-grid" style={{ marginBottom: '12px' }}>
-            <label className="portal-label">Department
-              <select className="portal-input" value={ef.department} onChange={setEf('department')}>
-                <option value="">— Select —</option>
-                {DEPT_OPTIONS.map(d => <option key={d} value={d}>{d}</option>)}
-              </select>
-            </label>
+            <div>
+              <div className="portal-label" style={{ marginBottom: 6 }}>Departments <span className="portal-muted" style={{ fontWeight: 400 }}>(pick all that apply)</span></div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                {DEPT_OPTIONS.map(d => {
+                  const active = ef.departments.includes(d);
+                  return (
+                    <button key={d} type="button"
+                      className={`role-pill-btn${active ? ' role-pill-btn--active' : ''}`}
+                      onClick={() => setEditForm(f => ({
+                        ...f,
+                        departments: active ? f.departments.filter(x => x !== d) : [...f.departments, d],
+                      }))}>
+                      {d}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
             <label className="portal-label">Event Date
               <input className="portal-input" type="date" value={ef.eventDate} onChange={setEf('eventDate')} />
             </label>
@@ -237,56 +247,56 @@ export default function ManageEventsPage() {
             <a href="/admin/events/add" className="portal-btn" style={{ display: 'inline-flex', textDecoration: 'none', fontSize: '0.88rem' }}>+ Add First Event</a>
           </div>
         ) : (
-          grouped.map(([dept, items]) => (
-            <div key={dept} style={{ marginBottom: '1.5rem' }}>
-              <div className="faculty-group-label">{dept}</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {items.map((ev, idx) => (
-                  <div key={ev.id} className={`faculty-list-row${editingId === ev.id ? ' faculty-list-row--editing' : ''}`}
-                    style={{ animationDelay: `${idx * 40}ms` }}>
-                    {/* Thumbnail */}
-                    <div style={{
-                      width: 52, height: 52, borderRadius: 10, flexShrink: 0, overflow: 'hidden',
-                      background: 'linear-gradient(135deg, rgba(165,42,42,0.12), rgba(46,58,89,0.12))',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    }}>
-                      {ev.imageUrl
-                        ? <img src={ev.imageUrl} alt={ev.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                        : <span style={{ fontSize: '1.4rem' }}>📅</span>
-                      }
-                    </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {sorted.map((ev, idx) => (
+              <div key={ev.id} className={`faculty-list-row${editingId === ev.id ? ' faculty-list-row--editing' : ''}`}
+                style={{ animationDelay: `${idx * 40}ms` }}>
+                {/* Thumbnail */}
+                <div style={{
+                  width: 52, height: 52, borderRadius: 10, flexShrink: 0, overflow: 'hidden',
+                  background: 'linear-gradient(135deg, rgba(165,42,42,0.12), rgba(46,58,89,0.12))',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  {ev.imageUrl
+                    ? <img src={ev.imageUrl} alt={ev.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    : <span style={{ fontSize: '1.4rem' }}>📅</span>
+                  }
+                </div>
 
-                    {/* Info */}
-                    <div className="faculty-row-info">
-                      <div className="faculty-row-name">{ev.title || '—'}</div>
-                      <div className="faculty-row-sub">
-                        {ev.eventDate ? formatDate(ev.eventDate) : <span className="portal-muted">No date set</span>}
-                        {ev.description && <span style={{ marginLeft: 8, opacity: 0.7 }}>· {ev.description.slice(0, 60)}{ev.description.length > 60 ? '…' : ''}</span>}
-                      </div>
-                    </div>
-
-                    {/* Link indicator */}
-                    {ev.link && (
-                      <a href={ev.link} target="_blank" rel="noreferrer"
-                        style={{ fontSize: '0.72rem', color: 'var(--primary-color)', fontWeight: 700, textDecoration: 'none', flexShrink: 0 }}>
-                        ↗ Link
-                      </a>
-                    )}
-
-                    {/* Actions */}
-                    <div className="faculty-row-actions">
-                      <button className={`portal-btn portal-btn-small${editingId === ev.id ? ' portal-btn-active' : ''}`}
-                        type="button" onClick={() => startEdit(ev)} disabled={submitting}>
-                        {editingId === ev.id ? 'Editing…' : 'Edit'}
-                      </button>
-                      <button className="portal-btn portal-btn-secondary portal-btn-small delete-btn"
-                        type="button" onClick={() => deleteEvent(ev.id)} disabled={submitting}>Delete</button>
-                    </div>
+                {/* Info */}
+                <div className="faculty-row-info">
+                  <div className="faculty-row-name">{ev.title || '—'}</div>
+                  <div className="faculty-row-sub" style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '4px' }}>
+                    {ev.eventDate ? formatDate(ev.eventDate) : <span className="portal-muted">No date set</span>}
+                    {ev.departments?.length > 0 && ev.departments.map(d => (
+                      <span key={d} style={{
+                        fontSize: '0.68rem', fontWeight: 700, padding: '1px 7px',
+                        borderRadius: 20, background: 'rgba(46,58,89,0.1)', color: 'var(--secondary-color)',
+                      }}>{d}</span>
+                    ))}
                   </div>
-                ))}
+                </div>
+
+                {/* Link indicator */}
+                {ev.link && (
+                  <a href={ev.link} target="_blank" rel="noreferrer"
+                    style={{ fontSize: '0.72rem', color: 'var(--primary-color)', fontWeight: 700, textDecoration: 'none', flexShrink: 0 }}>
+                    ↗ Link
+                  </a>
+                )}
+
+                {/* Actions */}
+                <div className="faculty-row-actions">
+                  <button className={`portal-btn portal-btn-small${editingId === ev.id ? ' portal-btn-active' : ''}`}
+                    type="button" onClick={() => startEdit(ev)} disabled={submitting}>
+                    {editingId === ev.id ? 'Editing…' : 'Edit'}
+                  </button>
+                  <button className="portal-btn portal-btn-secondary portal-btn-small delete-btn"
+                    type="button" onClick={() => deleteEvent(ev.id)} disabled={submitting}>Delete</button>
+                </div>
               </div>
-            </div>
-          ))
+            ))}
+          </div>
         )}
       </div>
     </div>

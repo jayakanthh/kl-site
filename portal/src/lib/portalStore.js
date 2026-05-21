@@ -186,12 +186,21 @@ export async function updateFacultyById(id, patch) {
 
 // ─── Events ──────────────────────────────────────────────────────────────────
 
+function parseDepartments(val) {
+  if (!val) return [];
+  const s = String(val).trim();
+  if (s.startsWith('[')) {
+    try { return JSON.parse(s); } catch {}
+  }
+  return s ? [s] : []; // backward-compat: old rows stored plain string
+}
+
 function eventRowToRecord(row) {
   return {
     id:          row.id,
     title:       row.title || '',
     description: row.description || '',
-    department:  row.department || '',
+    departments: parseDepartments(row.department),
     eventDate:   row.event_date || null,
     imageUrl:    row.image_url || '',
     link:        row.link || '',
@@ -202,23 +211,26 @@ function eventRowToRecord(row) {
 export async function getEventList(dept) {
   await ensureDb();
   const sql = getDb();
-  const rows = dept
-    ? await sql`SELECT * FROM events WHERE department = ${dept} ORDER BY event_date DESC, created_at DESC`
-    : await sql`SELECT * FROM events ORDER BY event_date DESC, created_at DESC`;
-  return rows.map(eventRowToRecord);
+  const rows = await sql`SELECT * FROM events ORDER BY event_date DESC, created_at DESC`;
+  const all = rows.map(eventRowToRecord);
+  if (!dept) return all;
+  return all.filter(ev => ev.departments.includes(dept));
 }
 
 export async function createEvent(input) {
   await ensureDb();
   const sql = getDb();
   const id = crypto.randomUUID();
+  const departments = Array.isArray(input.departments)
+    ? input.departments.map(String)
+    : (input.department ? [String(input.department)] : []);
   const rows = await sql`
     INSERT INTO events (id, title, description, department, event_date, image_url, link)
     VALUES (
       ${id},
       ${String(input.title || '').trim()},
       ${String(input.description || '').trim()},
-      ${String(input.department || '').trim()},
+      ${JSON.stringify(departments)},
       ${input.eventDate || null},
       ${String(input.imageUrl || '').trim()},
       ${String(input.link || '').trim()}
@@ -235,13 +247,15 @@ export async function updateEventById(id, patch) {
   const cur = rows[0];
   const title       = patch.title       != null ? String(patch.title).trim()       : cur.title;
   const description = patch.description != null ? String(patch.description).trim() : cur.description;
-  const department  = patch.department  != null ? String(patch.department).trim()  : cur.department;
+  const departments = patch.departments != null
+    ? (Array.isArray(patch.departments) ? patch.departments.map(String) : [])
+    : parseDepartments(cur.department);
   const eventDate   = patch.eventDate   !== undefined ? (patch.eventDate || null)   : cur.event_date;
   const imageUrl    = patch.imageUrl    != null ? String(patch.imageUrl).trim()    : cur.image_url;
   const link        = patch.link        != null ? String(patch.link).trim()        : cur.link;
   const updated = await sql`
     UPDATE events SET
-      title=${title}, description=${description}, department=${department},
+      title=${title}, description=${description}, department=${JSON.stringify(departments)},
       event_date=${eventDate}, image_url=${imageUrl}, link=${link}
     WHERE id=${id} RETURNING *
   `;
