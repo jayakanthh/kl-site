@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
-const basePath = '/bachupally-testing';
-
+// When deployed standalone (Vercel demo), basePath is empty.
+// When served inside WordPress, set NEXT_PUBLIC_BASE_PATH=/bachupally-testing at build time.
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 const nextConfig = {
   output: 'export',
   basePath,
