@@ -387,10 +387,17 @@
 
 /* ── Responsive ─────────────────────────────────────────── */
 @media (max-width: 900px) {
-  .faculty-card-wrap { flex: 0 0 200px; }
+  .faculty-card-wrap { flex: 0 0 220px; }
 }
 
 @media (max-width: 600px) {
-  .faculty-grid { gap: 10px; }
-  .faculty-card-wrap { flex: 0 0 calc(50% - 5px); }
+  .faculty-grid { gap: 14px; }
+  .faculty-card-wrap {
+    flex: 0 0 calc(50% - 7px);
+    min-width: 0;
+  }
+}
+
+@media (max-width: 380px) {
+  .faculty-card-wrap { flex: 0 0 100%; }
 }
