@@ -3,10 +3,6 @@
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-function parseJsonLoose(text) {
-  try { return JSON.parse(text); } catch { return null; }
-}
-
 export default function Page() {
   const router = useRouter();
   const [email, setEmail]         = useState('');
@@ -28,12 +24,11 @@ export default function Page() {
         body: JSON.stringify({ email, password }),
       });
       const text = await res.text().catch(() => '');
-      const data = parseJsonLoose(text);
-      if (!res.ok) throw new Error(data?.error || text || `Login failed (${res.status})`);
-      if (data?.token) {
-        window.localStorage.setItem('klh_admin_token', data.token);
-        window.sessionStorage.setItem('klh_admin_token', data.token);
+      if (!res.ok) {
+        const msg = (() => { try { return JSON.parse(text)?.error; } catch { return null; } })();
+        throw new Error(msg || text || `Login failed (${res.status})`);
       }
+      // Auth is handled by the httpOnly cookie set by the server — no token storage in JS
       router.push('/admin/faculty');
       router.refresh();
     } catch (err) {
