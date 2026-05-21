@@ -90,7 +90,25 @@ export async function getAdminFacultyList() {
   await ensureDb();
   const sql = getDb();
   const rows = await sql`SELECT * FROM faculty ORDER BY created_at DESC`;
-  return rows.map(rowToRecord);
+  const faculty = rows.map(rowToRecord);
+
+  const desigRank = (d) => {
+    const s = String(d || '').toLowerCase();
+    if (s.includes('professor') && !s.includes('associate') && !s.includes('assistant')) return 1;
+    if (s.includes('associate')) return 2;
+    if (s.includes('assistant')) return 3;
+    return 4;
+  };
+
+  faculty.sort((a, b) => {
+    if (a.isPrincipal !== b.isPrincipal) return a.isPrincipal ? -1 : 1;
+    const deptCmp = a.department.localeCompare(b.department);
+    if (deptCmp !== 0) return deptCmp;
+    if (a.isHOD !== b.isHOD) return a.isHOD ? -1 : 1;
+    return desigRank(a.designation) - desigRank(b.designation);
+  });
+
+  return faculty;
 }
 
 // ─── Create ──────────────────────────────────────────────────────────────────
