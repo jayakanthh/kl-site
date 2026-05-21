@@ -194,7 +194,13 @@
 
 /* ══ MOBILE ══════════════════════════════════════════════════════════════════ */
 @media (max-width: 960px) {
-  .menu-toggle { display: flex; align-items: center; justify-content: center; }
+  .menu-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;   /* creates stacking context */
+    z-index: 1001;        /* always above the nav-links overlay (999) */
+  }
 
   /* Full-screen overlay */
   .nav-links {
@@ -306,12 +312,22 @@
   .submenu-content .dropdown-item { padding-left: 52px; }
   .submenu-content .dropdown-item:hover { padding-left: 60px; }
 
-  /* Admissions Apply button */
+  /* Admissions Apply button — sticky at bottom so it's always reachable */
+  .nav-links li:last-child {
+    position: sticky;
+    bottom: 0;
+    background: #fff;
+    border-top: 1px solid rgba(0,0,0,0.08);
+    border-bottom: none;
+    padding: 12px 0 16px;
+    z-index: 2;
+  }
   .btn-gradient {
-    margin: 16px 24px 24px;
+    margin: 0 24px;
     justify-content: center;
     width: calc(100% - 48px);
     border-radius: 50px;
+    padding: 12px 22px !important;
   }
 }
 
