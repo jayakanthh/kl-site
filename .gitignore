@@ -23,3 +23,16 @@ dist-ssr
 *.sln
 *.sw?
 .vercel
+
+# Build outputs & local dev artifacts
+wordpress/out
+wordpress/.next
+wordpress/.serve
+portal/.next
+portal/out
+
+# Local-only dirs — never commit
+.claude/
+.next/
+kl-site/
+wordpress-local/.env
