@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ChevronDown, ChevronRight, Menu, X } from 'lucide-react';
 
 const Navbar = () => {
+  const year = new Date().getFullYear();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -198,7 +199,7 @@ const Navbar = () => {
               Admissions <ChevronDown size={14} />
             </a>
             <div className="dropdown-content">
-              <a href="https://klh.edu.in/admissions-2025/" className="dropdown-item">Admissions 2025</a>
+              <a href={`https://klh.edu.in/admissions-${year}/`} className="dropdown-item">Admissions {year}</a>
               <Link href="/fee-structure" className="dropdown-item">Fee Structure</Link>
               <a href="https://klh.edu.in/bhp-bus-fee-bowrampet/" className="dropdown-item">Bus Fee</a>
             </div>
@@ -237,7 +238,7 @@ const Navbar = () => {
           <li><a href="https://klh.edu.in/bhp-contact-us/">Contact Us</a></li>
           
           <li>
-            <a href="https://www.kluniversity.in/admissions-2025/?utm_source=Website&utm_medium=Banner&utm_campaign=2025-26AY/" className="btn-gradient">
+            <a href={`https://www.kluniversity.in/admissions-${year}/?utm_source=Website&utm_medium=Banner&utm_campaign=${year}-${String(year+1).slice(2)}AY/`} className="btn-gradient">
                 Admissions Apply <ChevronRight size={16} />
             </a>
           </li>
