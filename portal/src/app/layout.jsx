@@ -1,7 +1,8 @@
-/* eslint-disable no-unused-vars */
 import './globals.css';
+/* eslint-disable no-unused-vars -- JSX component usage not tracked by this rule */
 import PortalHeader from './_header';
 import PageTransition from './_transition';
+/* eslint-enable no-unused-vars */
 
 export const metadata = {
   title: 'Faculty Portal | KLH Hyderabad',

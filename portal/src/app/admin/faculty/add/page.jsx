@@ -2,9 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-const TITLE_OPTIONS = ['', 'Dr.', 'Prof.', 'Mr.', 'Ms.', 'Mrs.', 'Er.'];
-const DEPT_OPTIONS  = ['CSE', 'CS&IT', 'AI & Data Science', 'ECE', 'Freshman Engineering', 'MCA', 'BCA', 'MBA', 'BBA'];
-const DESIG_OPTIONS = ['Professor', 'Associate Professor', 'Assistant Professor', 'Lecturer', 'Senior Lecturer'];
+import { DEPT_OPTIONS, TITLE_OPTIONS, DESIG_OPTIONS } from '../../../../lib/constants';
 
 function fromLines(v) {
   return String(v || '').split('\n').map(s => s.trim()).filter(Boolean);

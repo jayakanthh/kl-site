@@ -179,7 +179,7 @@ const Navbar = () => {
                   </div>
                 </div>
 
-                <a href="#" className="dropdown-item">Academic Regulations</a>
+                <a href="https://klh.edu.in/hyderabad-campus-bowrampet/academic-regulations/" target="_blank" className="dropdown-item">Academic Regulations</a>
                 <a href="https://klh.edu.in/wp-content/uploads/2022/04/Code-of-Conduct.pdf" target="_blank" className="dropdown-item">Code Of Conduct</a>
                 <a href="https://klh.edu.in/wp-content/uploads/2025/11/Y25-B.Tech-PBL-Academic-Calendar-2025-26.pdf" target="_blank" className="dropdown-item">Academic Calendar</a>
               </div>
@@ -233,6 +233,7 @@ const Navbar = () => {
               </div>
             </li>
 
+            <li><Link href="/about" onClick={closeAll}>About</Link></li>
             <li><a href="https://klh.edu.in/bhp-contact-us/" onClick={closeAll}>Contact Us</a></li>
 
             <li>

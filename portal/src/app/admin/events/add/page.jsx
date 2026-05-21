@@ -2,8 +2,8 @@
 
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import { EVENT_DEPT_OPTIONS as DEPT_OPTIONS } from '../../../../lib/constants';
 
-const DEPT_OPTIONS = ['Campus Wide', 'CSE', 'CS&IT', 'AI & Data Science', 'ECE', 'Freshman Engineering', 'MCA', 'BCA', 'MBA', 'BBA'];
 
 
 const EMPTY = {
