@@ -96,6 +96,15 @@ export default function Page() {
               : 'Sign in'
             }
           </button>
+
+          <div style={{ textAlign: 'center', marginTop: 12 }}>
+            <a
+              href="/forgot-password"
+              style={{ fontSize: '0.82rem', color: 'var(--secondary-color)', opacity: 0.7 }}
+            >
+              Forgot password?
+            </a>
+          </div>
         </form>
       </div>
     </div>

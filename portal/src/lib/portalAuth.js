@@ -115,30 +115,67 @@ export function verifySession(token) {
 }
 
 // ─── Credential validation ───────────────────────────────────────────────────
-// Credentials come from env vars only — no hardcoded defaults in source.
+// Checks DB hash first (set via forgot-password flow), then falls back to
+// the ADMIN_PASSWORD env var.
 
-export function validateAdminCredentials(email, password) {
+export async function validateAdminCredentials(email, password) {
+  const bcrypt      = await import('bcryptjs');
+  const { getDb }   = await import('./db.js');
   const envEmail    = String(process.env.ADMIN_EMAIL    || '').trim().toLowerCase();
   const envPassword = String(process.env.ADMIN_PASSWORD || '');
 
-  if (!envEmail || !envPassword) {
+  if (!envEmail) {
     if (process.env.NODE_ENV === 'production') {
-      throw new Error('ADMIN_EMAIL or ADMIN_PASSWORD env var is not set');
+      throw new Error('ADMIN_EMAIL env var is not set');
     }
-    // In dev: require env vars to be explicitly set — don't fall back to hardcoded values
     return false;
   }
 
   const inEmail    = String(email    || '').trim().toLowerCase();
   const inPassword = String(password || '');
 
-  const okEmail = inEmail === envEmail;
-  // Pad both buffers to the same max length before timing-safe compare
-  // to avoid leaking which field was wrong via timing
-  const maxLen  = Math.max(envPassword.length, inPassword.length, 1);
-  const bufEnv  = Buffer.alloc(maxLen); Buffer.from(envPassword).copy(bufEnv);
-  const bufIn   = Buffer.alloc(maxLen); Buffer.from(inPassword).copy(bufIn);
-  const okPass  = crypto.timingSafeEqual(bufEnv, bufIn);
+  if (inEmail !== envEmail) return false;
 
-  return okEmail && okPass;
+  // 1. Check DB hash (set when user changes password via forgot-password flow)
+  try {
+    const sql  = getDb();
+    const rows = await sql`SELECT password_hash FROM admin_credentials WHERE email = ${envEmail}`;
+    if (rows[0]?.password_hash) {
+      return bcrypt.compare(inPassword, rows[0].password_hash);
+    }
+  } catch { /* DB unavailable — fall through to env var */ }
+
+  // 2. Fallback: env var plain-text comparison (timing-safe)
+  if (!envPassword) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('ADMIN_PASSWORD env var is not set');
+    }
+    return false;
+  }
+  const maxLen = Math.max(envPassword.length, inPassword.length, 1);
+  const bufEnv = Buffer.alloc(maxLen); Buffer.from(envPassword).copy(bufEnv);
+  const bufIn  = Buffer.alloc(maxLen); Buffer.from(inPassword).copy(bufIn);
+  return crypto.timingSafeEqual(bufEnv, bufIn);
+}
+
+// ─── OTP helpers ─────────────────────────────────────────────────────────────
+
+export function generateOtp() {
+  // 6-digit numeric OTP
+  return String(crypto.randomInt(100000, 999999));
+}
+
+export async function hashOtp(otp) {
+  const bcrypt = await import('bcryptjs');
+  return bcrypt.hash(otp, 10);
+}
+
+export async function verifyOtp(otp, hash) {
+  const bcrypt = await import('bcryptjs');
+  return bcrypt.compare(String(otp), hash);
+}
+
+export async function hashPassword(password) {
+  const bcrypt = await import('bcryptjs');
+  return bcrypt.hash(password, 12);
 }

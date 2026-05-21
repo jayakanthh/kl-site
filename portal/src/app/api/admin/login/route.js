@@ -33,7 +33,7 @@ export async function POST(req) {
 
     let ok = false;
     try {
-      ok = validateAdminCredentials(email, password);
+      ok = await validateAdminCredentials(email, password);
     } catch (e) {
       return NextResponse.json({ error: e.message }, { status: 500 });
     }

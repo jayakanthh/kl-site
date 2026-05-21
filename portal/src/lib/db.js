@@ -64,6 +64,27 @@ export async function initDb() {
     ON CONFLICT (id) DO NOTHING
   `;
 
+  // ── Admin credentials (DB override for env-var password) ────────────────
+  await sql`
+    CREATE TABLE IF NOT EXISTS admin_credentials (
+      email       TEXT PRIMARY KEY,
+      password_hash TEXT NOT NULL,
+      updated_at  TIMESTAMPTZ DEFAULT NOW()
+    )
+  `;
+
+  // ── Password reset OTPs ───────────────────────────────────────────────────
+  await sql`
+    CREATE TABLE IF NOT EXISTS password_reset_otps (
+      id         TEXT        PRIMARY KEY,
+      email      TEXT        NOT NULL,
+      otp_hash   TEXT        NOT NULL,
+      expires_at TIMESTAMPTZ NOT NULL,
+      used       BOOLEAN     DEFAULT FALSE,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    )
+  `;
+
   // ── Events ───────────────────────────────────────────────────────────────
   await sql`
     CREATE TABLE IF NOT EXISTS events (
