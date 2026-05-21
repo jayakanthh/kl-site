@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 import { Facebook, Linkedin, Instagram, Youtube, Send, X } from 'lucide-react';
 
 const Footer = () => {
@@ -24,10 +25,10 @@ const Footer = () => {
             <div className="footer-col links-col">
               <h4>ABOUT US</h4>
               <ul className="footer-links">
-                <li><a href="https://klh.edu.in/inception-brief-history/">About Us</a></li>
+                <li><Link href="/about">About Us</Link></li>
                 <li><a href="#">Collaborations</a></li>
-                <li><a href="#">LMS</a></li>
-                <li><a href="#">ERP</a></li>
+                <li><a href="https://bmp-lms.klh.edu.in/login/index.php" target="_blank" rel="noreferrer">LMS</a></li>
+                <li><a href="https://newerp.kluniversity.in" target="_blank" rel="noreferrer">ERP</a></li>
                 <li><a href="#">Feedback</a></li>
               </ul>
             </div>
@@ -38,8 +39,8 @@ const Footer = () => {
               <ul className="footer-links">
                 <li><a href="#">ExamSection</a></li>
                 <li><a href="#">Alumni</a></li>
-                <li><a href="#">NSS</a></li>
-                <li><a href="https://klh.edu.in/hyderabad-campus-bowrampet/all-cells/">Hobby Clubs</a></li>
+                <li><a href="https://nss.klh.edu.in" target="_blank" rel="noreferrer">NSS</a></li>
+                <li><a href="https://sac.klh.edu.in" target="_blank" rel="noreferrer">Hobby Clubs</a></li>
                 <li><a href="#">Ivarna</a></li>
                 <li><a href="#">KLH mail</a></li>
                 <li><a href="#">Staff Grievances</a></li>

@@ -3,8 +3,10 @@ import { getEventList } from '../../../lib/portalStore';
 
 export const runtime = 'nodejs';
 
-export async function GET() {
-  const events = await getEventList();
+export async function GET(req) {
+  const { searchParams } = new URL(req.url);
+  const dept = searchParams.get('dept') || '';
+  const events = await getEventList(dept || undefined);
   return NextResponse.json({ events }, {
     headers: {
       'Access-Control-Allow-Origin': '*',

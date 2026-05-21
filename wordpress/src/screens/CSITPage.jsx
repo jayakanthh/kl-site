@@ -3,15 +3,13 @@ import React from 'react';
 import Footer from '../components/Footer';
 import Breadcrumb from '../components/Breadcrumb';
 import DeptTabLayout from '../components/DeptTabLayout';
+import DeptEvents from '../components/DeptEvents';
 import hodPhoto from '../assets/csit/01_Dr._Sk_KHAJA_SHAREEF_Associate_Professor.png';
 import faculty2Photo from '../assets/csit/02_Dr._Y._Lakshmi_Prasanna_Assistant_Professor.png';
 import faculty3Photo from '../assets/csit/03_Ms._Chekuri_Anitha_Assistant_Professor.png';
 import faculty4Photo from '../assets/csit/04_Mr.P.Krishnanjaneyulu_Assistant_Professor.png';
 import faculty5Photo from '../assets/csit/05_Ms.K.Chandusha_Assistant_Professor.png';
 import staff1Photo from '../assets/csit/06_Vemulapalli_sai_prakash.png';
-import eventCryptonize from '../assets/csit/07_Cryptonize.png';
-import eventIeee from '../assets/csit/13_IEEE_Membership_Awareness_Program.png';
-import eventNvidia from '../assets/csit/14_Programs_and_Resources_from_NVIDIA_for_researchers_and_Educators.png';
 
 const programOutcomes = [
   { id: 'PO1', title: 'Engineering Knowledge', text: 'Apply the knowledge of mathematics, science, engineering fundamentals, and an engineering specialization to the solution of complex engineering problems.' },
@@ -237,33 +235,7 @@ const CSITPage = () => (
           {activeTab === 'Events' && (
             <div className="csit-section">
               <div className="csit-section-title">Talks &amp; Events</div>
-              <div className="csit-event-grid">
-                <div className="csit-event-card">
-                  <img src={eventCryptonize} alt="Cryptonize" />
-                  <div className="csit-event-title">Cryptonize</div>
-                  <div className="csit-muted">Talk</div>
-                </div>
-                <div className="csit-event-card">
-                  <img src={eventIeee} alt="IEEE Membership Awareness Program" />
-                  <div className="csit-event-title">IEEE Membership Awareness Program</div>
-                  <div className="csit-muted">Event</div>
-                </div>
-                <div className="csit-event-card">
-                  <img src={eventNvidia} alt="Programs & Resources from NVIDIA" />
-                  <div className="csit-event-title">Programs &amp; Resources from NVIDIA</div>
-                  <div className="csit-muted">Orientation / Talk</div>
-                </div>
-              </div>
-              <div className="csit-card" style={{ marginTop: 20 }}>
-                <div className="csit-card-kicker">ABC Club Inauguration</div>
-                <div className="csit-strong">Inauguration of the Algorand Blockchain Club</div>
-                <ul className="csit-list" style={{ marginTop: 10 }}>
-                  <li>Date: 21st September 2024</li>
-                  <li>Time: 1:30 PM to 4:00 PM</li>
-                  <li>Venue: Auditorium, KL University, Bachupally Campus</li>
-                  <li>Chief Guest: Mr. Akash Rao Mallareddy (Regional Ambassador, Cloud Engineer, Entrepreneur, Researcher)</li>
-                </ul>
-              </div>
+              <DeptEvents dept="CS&IT" />
             </div>
           )}
         </>

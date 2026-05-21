@@ -1,3 +1,4 @@
+import { Plus_Jakarta_Sans, Syne } from 'next/font/google';
 import '../index.css';
 import '../App.css';
 
@@ -16,6 +17,20 @@ import '../screens/FacultyPage.css';
 import Navbar from '../components/Navbar';
 import NextTopLoader from 'nextjs-toploader';
 
+const jakarta = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '800'],
+  variable: '--font-jakarta',
+  display: 'swap',
+});
+
+const syne = Syne({
+  subsets: ['latin'],
+  weight: ['400', '600', '700', '800'],
+  variable: '--font-syne',
+  display: 'swap',
+});
+
 export const metadata = {
   title: 'KLH Hyderabad',
   description: 'KLH Hyderabad Campus website',
@@ -23,7 +38,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${jakarta.variable} ${syne.variable}`}>
       <body>
         <NextTopLoader color="#A52A2A" height={3} showSpinner={false} />
         <Navbar />

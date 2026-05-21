@@ -199,10 +199,12 @@ function eventRowToRecord(row) {
   };
 }
 
-export async function getEventList() {
+export async function getEventList(dept) {
   await ensureDb();
   const sql = getDb();
-  const rows = await sql`SELECT * FROM events ORDER BY event_date DESC, created_at DESC`;
+  const rows = dept
+    ? await sql`SELECT * FROM events WHERE department = ${dept} ORDER BY event_date DESC, created_at DESC`
+    : await sql`SELECT * FROM events ORDER BY event_date DESC, created_at DESC`;
   return rows.map(eventRowToRecord);
 }
 
