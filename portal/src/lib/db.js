@@ -56,4 +56,18 @@ export async function initDb() {
   await sql`ALTER TABLE faculty ALTER COLUMN password_hash SET DEFAULT ''`.catch(() => null);
   // Academic rank: Professor / Associate Professor / Assistant Professor
   await sql`ALTER TABLE faculty ADD COLUMN IF NOT EXISTS rank TEXT DEFAULT ''`.catch(() => null);
+
+  // Events table
+  await sql`
+    CREATE TABLE IF NOT EXISTS events (
+      id          TEXT PRIMARY KEY,
+      title       TEXT DEFAULT '',
+      description TEXT DEFAULT '',
+      department  TEXT DEFAULT '',
+      event_date  DATE,
+      image_url   TEXT DEFAULT '',
+      link        TEXT DEFAULT '',
+      created_at  TIMESTAMPTZ DEFAULT NOW()
+    )
+  `;
 }

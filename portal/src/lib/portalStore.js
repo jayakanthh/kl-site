@@ -184,6 +184,75 @@ export async function updateFacultyById(id, patch) {
   return rowToRecord(updated[0]);
 }
 
+// ─── Events ──────────────────────────────────────────────────────────────────
+
+function eventRowToRecord(row) {
+  return {
+    id:          row.id,
+    title:       row.title || '',
+    description: row.description || '',
+    department:  row.department || '',
+    eventDate:   row.event_date || null,
+    imageUrl:    row.image_url || '',
+    link:        row.link || '',
+    createdAt:   row.created_at,
+  };
+}
+
+export async function getEventList() {
+  await ensureDb();
+  const sql = getDb();
+  const rows = await sql`SELECT * FROM events ORDER BY event_date DESC, created_at DESC`;
+  return rows.map(eventRowToRecord);
+}
+
+export async function createEvent(input) {
+  await ensureDb();
+  const sql = getDb();
+  const id = crypto.randomUUID();
+  const rows = await sql`
+    INSERT INTO events (id, title, description, department, event_date, image_url, link)
+    VALUES (
+      ${id},
+      ${String(input.title || '').trim()},
+      ${String(input.description || '').trim()},
+      ${String(input.department || '').trim()},
+      ${input.eventDate || null},
+      ${String(input.imageUrl || '').trim()},
+      ${String(input.link || '').trim()}
+    ) RETURNING *
+  `;
+  return eventRowToRecord(rows[0]);
+}
+
+export async function updateEventById(id, patch) {
+  await ensureDb();
+  const sql = getDb();
+  const rows = await sql`SELECT * FROM events WHERE id = ${id}`;
+  if (!rows[0]) return null;
+  const cur = rows[0];
+  const title       = patch.title       != null ? String(patch.title).trim()       : cur.title;
+  const description = patch.description != null ? String(patch.description).trim() : cur.description;
+  const department  = patch.department  != null ? String(patch.department).trim()  : cur.department;
+  const eventDate   = patch.eventDate   !== undefined ? (patch.eventDate || null)   : cur.event_date;
+  const imageUrl    = patch.imageUrl    != null ? String(patch.imageUrl).trim()    : cur.image_url;
+  const link        = patch.link        != null ? String(patch.link).trim()        : cur.link;
+  const updated = await sql`
+    UPDATE events SET
+      title=${title}, description=${description}, department=${department},
+      event_date=${eventDate}, image_url=${imageUrl}, link=${link}
+    WHERE id=${id} RETURNING *
+  `;
+  return eventRowToRecord(updated[0]);
+}
+
+export async function deleteEventById(id) {
+  await ensureDb();
+  const sql = getDb();
+  const result = await sql`DELETE FROM events WHERE id=${id} RETURNING id`;
+  return result.length > 0;
+}
+
 // ─── Delete ──────────────────────────────────────────────────────────────────
 
 export async function deleteFacultyById(id) {

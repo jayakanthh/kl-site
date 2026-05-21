@@ -25,7 +25,6 @@ export default function PortalHeader() {
 
   return (
     <>
-      {/* Fixed bar */}
       <div className="portal-shell-top">
         <div className="container portal-shell-top-inner">
           <a href="/" className="portal-brand">
@@ -33,17 +32,26 @@ export default function PortalHeader() {
           </a>
 
           <nav className="portal-header-nav">
-            <Link
-              href="/admin/faculty/add"
-              className={`portal-header-link${pathname === '/admin/faculty/add' ? ' active' : ''}`}
-            >
+            {/* Faculty */}
+            <Link href="/admin/faculty/add"
+              className={`portal-header-link${pathname === '/admin/faculty/add' ? ' active' : ''}`}>
               + Add Profile
             </Link>
-            <Link
-              href="/admin/faculty"
-              className={`portal-header-link${pathname === '/admin/faculty' ? ' active' : ''}`}
-            >
-              Manage Profiles
+            <Link href="/admin/faculty"
+              className={`portal-header-link${pathname === '/admin/faculty' ? ' active' : ''}`}>
+              Profiles
+            </Link>
+
+            <span className="portal-nav-sep" />
+
+            {/* Events */}
+            <Link href="/admin/events/add"
+              className={`portal-header-link${pathname === '/admin/events/add' ? ' active' : ''}`}>
+              + Add Event
+            </Link>
+            <Link href="/admin/events"
+              className={`portal-header-link${pathname === '/admin/events' ? ' active' : ''}`}>
+              Events
             </Link>
           </nav>
 
@@ -53,7 +61,6 @@ export default function PortalHeader() {
         </div>
       </div>
 
-      {/* In-flow spacer so content isn't hidden behind fixed bar */}
       <div style={{ height: 72, flexShrink: 0 }} />
     </>
   );
