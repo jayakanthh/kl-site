@@ -4,11 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "next dev",
     "build": "next build",
-    "start": "next start",
-    "lint": "eslint .",
-    "preview": "next start"
+    "build:wp": "NEXT_PUBLIC_BASE_PATH=/bachupally-testing next build",
+    "serve": "rm -rf .serve && mkdir -p .serve/bachupally-testing && cp -r out/. .serve/bachupally-testing/ && npx serve .serve --listen 3000",
+    "lint": "eslint ."
   },
   "dependencies": {
     "framer-motion": "^12.35.1",
