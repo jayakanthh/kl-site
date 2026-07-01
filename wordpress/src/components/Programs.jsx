@@ -54,7 +54,10 @@ const Programs = () => {
 
         {/* Tab Content */}
         <div className="tab-content">
-          <AnimatePresence mode='wait'>
+          {/* initial={false}: render the first-visible grid at its final state
+              (no mount animation) so it's never stuck at opacity:0 after a
+              static-export hydration. Tab switches still animate. */}
+          <AnimatePresence mode='wait' initial={false}>
             {activeTab === 'engineering' && (
               <MotionDiv
                 key="engineering"

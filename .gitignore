@@ -36,3 +36,6 @@ portal/out
 .next/
 kl-site/
 wordpress-local/.env
+
+# Deployment artifacts
+*.zip

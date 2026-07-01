@@ -5,6 +5,10 @@ const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 const nextConfig = {
   output: 'export',
   basePath,
+  // Emit each route as a folder with index.html (e.g. /cse/index.html) so that
+  // directly visiting or refreshing a subpage on Apache/static hosting works
+  // without MultiViews or rewrite rules.
+  trailingSlash: true,
   env: {
     NEXT_PUBLIC_BASE_PATH: basePath,
   },
